@@ -88,7 +88,7 @@ void cleanup_shm(char* shared_memory) {
 }
 
 void shm_wait(atomic_char* guard) {
-	while (atomic_load(guard) == 'c')
+	while (atomic_load(guard) != 'c')
 		;
 }
 
