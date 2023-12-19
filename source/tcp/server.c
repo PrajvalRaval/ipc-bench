@@ -200,6 +200,8 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args, in
 	atomic_init(guard, 'a');
 	assert(sizeof(atomic_char) == 1);
 
+	printf("TCP SERVER UP");
+
 	for (; args->count > 0; --args->count) {
 		shm_wait(guard);
 		// Read
