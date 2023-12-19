@@ -197,8 +197,10 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args, in
 	void* buffer = malloc(args->size);
 
 	atomic_char* guard = (atomic_char*)shared_memory;
-	atomic_init(guard, 'a');
-	assert(sizeof(atomic_char) == 1);
+	// atomic_init(guard, 'a');
+	// assert(sizeof(atomic_char) == 1);
+
+	printf("TCP CLIENT UP");
 
 	for (; args->count > 0; --args->count) {
 		shm_wait(guard);
