@@ -26,12 +26,12 @@ void cleanup(int segment_id, char* shared_memory) {
 }
 
 void shm_wait(atomic_char* guard) {
-	while (atomic_load(guard) != 's')
+	while (atomic_load(guard) == 'a')
 		;
 }
 
 void shm_notify(atomic_char* guard) {
-	atomic_store(guard, 'c');
+	atomic_store(guard, 'b');
 }
 
 void communicate(char* shared_memory, struct Arguments* args) {
@@ -57,8 +57,8 @@ void communicate(char* shared_memory, struct Arguments* args) {
 		memcpy(buffer, shared_memory + 1, args->size);
 
 		printf("Message Id:      %d\n", message);
-		printf("shared_memory:      %s\n", shared_memory);
-		printf("shared_memory+1:      %s\n", shared_memory + 1);
+		// printf("shared_memory:      %s\n", shared_memory);
+		// printf("shared_memory+1:      %s\n", shared_memory + 1);
 
 		benchmark(&bench);
 	}
