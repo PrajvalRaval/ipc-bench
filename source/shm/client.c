@@ -184,7 +184,7 @@ int accept_communication(int socket_descriptor, int busy_waiting) {
 }
 
 void shm_wait(atomic_char* guard) {
-	while (atomic_load(guard) == 'b')
+	while (atomic_load(guard) != 'b')
 		;
 }
 
