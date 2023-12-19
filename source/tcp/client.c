@@ -104,6 +104,8 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args, in
 	// atomic_init(guard, 's');
 	// assert(sizeof(atomic_char) == 1);
 
+	printf("TCP CLIENT UP");
+
 	for (; args->count > 0; --args->count) {
 		if (receive(descriptor, buffer, args->size, busy_waiting) == -1) {
 			throw("Error receiving data on client-side");
