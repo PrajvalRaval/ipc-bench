@@ -41,6 +41,7 @@ void communicate(char* shared_memory, struct Arguments* args) {
 	atomic_char* guard = (atomic_char*)shared_memory;
 
 	// Wait for signal from client
+	printf("SHM WAITING");
 	shm_wait(guard);
 	setup_benchmarks(&bench);
 
