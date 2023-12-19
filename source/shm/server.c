@@ -57,6 +57,7 @@ void communicate(char* shared_memory, struct Arguments* args) {
 		memcpy(buffer, shared_memory + 1, args->size);
 
 		printf("Message Id:      %d\n", message);
+		printf("shared_memory:      %d\n", shared_memory);
 
 		benchmark(&bench);
 	}
