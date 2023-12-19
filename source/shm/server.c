@@ -27,7 +27,7 @@ void cleanup(int segment_id, char* shared_memory) {
 
 void shm_wait(atomic_char* guard) {
 	while (atomic_load(guard) == 'a')
-		;
+	printf("WAITING FOR A");
 }
 
 void shm_notify(atomic_char* guard) {
