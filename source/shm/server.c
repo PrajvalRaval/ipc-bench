@@ -44,6 +44,8 @@ void communicate(char* shared_memory, struct Arguments* args) {
 	shm_wait(guard);
 	setup_benchmarks(&bench);
 
+	printf("SHM SERVER UP");
+
 	for (message = 0; message < args->count; ++message) {
 		bench.single_start = now();
 
