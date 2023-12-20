@@ -32,8 +32,10 @@ void communicate(char* shared_memory, struct Arguments* args) {
 	atomic_init(guard, 'c');
 	assert(sizeof(atomic_char) == 1);
 
+	shm_wait(guard);
+
 	for (; args->count > 0; --args->count) {
-		shm_wait(guard);
+		// shm_wait(guard);
 		// Read
 		memcpy(buffer, shared_memory + 1, args->size);
 

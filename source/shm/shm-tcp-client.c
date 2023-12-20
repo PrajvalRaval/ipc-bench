@@ -96,6 +96,10 @@ void shm_notify(atomic_char* guard) {
 	atomic_store(guard, 'd');
 }
 
+void shm_notify_pre(atomic_char* guard) {
+	atomic_store(guard, 'b');
+}
+
 void communicate(char* shared_memory, int descriptor, struct Arguments *args, int busy_waiting) {
 	// Buffer into which to read our data
 	void *buffer;
@@ -104,10 +108,9 @@ void communicate(char* shared_memory, int descriptor, struct Arguments *args, in
 
 	atomic_char* guard = (atomic_char*)shared_memory;
 
-	// shm_wait(guard);
+	shm_wait(guard);
 
-	// atomic_init(guard, 'b');
-	// assert(sizeof(atomic_char) == 1);
+	shm_notify_pre(guard);
 
 	for (; args->count > 0; --args->count) {
 		// Receive data
