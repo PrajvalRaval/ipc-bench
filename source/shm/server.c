@@ -41,11 +41,8 @@ void communicate(char* shared_memory, struct Arguments* args) {
 	atomic_char* guard = (atomic_char*)shared_memory;
 
 	// Wait for signal from client
-	printf("\nSHM SERVER WAITING\n");
 	shm_wait(guard);
 	setup_benchmarks(&bench);
-
-	printf("\nSHM SERVER UP\n");
 
 	for (message = 0; message < args->count; ++message) {
 		bench.single_start = now();
@@ -58,10 +55,6 @@ void communicate(char* shared_memory, struct Arguments* args) {
 
 		// Read
 		memcpy(buffer, shared_memory + 1, args->size);
-
-		// printf("Message Id:      %d\n", message);
-		// printf("shared_memory:      %s\n", shared_memory);
-		// printf("shared_memory+1:      %s\n", shared_memory + 1);
 
 		benchmark(&bench);
 	}
