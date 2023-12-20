@@ -98,15 +98,6 @@ void start_children(char *prefix, int argc, char *argv[]) {
 	);
 
 	sprintf(
-		client_name,
-		"%s/%s/%s-%s",
-		build_path,
-		prefix,
-		prefix,
-		"client"
-	);
-
-	sprintf(
 		tcp_server_name,
 		"%s/%s/%s-%s",
 		build_path,
@@ -124,17 +115,26 @@ void start_children(char *prefix, int argc, char *argv[]) {
 		"tcp-client"
 	);
 
+	sprintf(
+		client_name,
+		"%s/%s/%s-%s",
+		build_path,
+		prefix,
+		prefix,
+		"client"
+	);
+
 	// clang-format on
 
 	printf("server_name path %s\n", server_name);
-	printf("client_name path %s\n", client_name);
 	printf("tcp_server_name path %s\n", tcp_server_name);
 	printf("tcp_client_name path %s\n", tcp_client_name);
+	printf("client_name path %s\n", client_name);
 
 	pid_t c1_id = start_child(server_name, argc, argv);
-	pid_t c2_id = start_child(client_name, argc, argv);
+	pid_t c2_id = start_child(tcp_client_name, argc, argv);
 	pid_t c3_id = start_child(tcp_server_name, argc, argv);
-	pid_t c4_id = start_child(tcp_client_name, argc, argv);
+	pid_t c4_id = start_child(client_name, argc, argv);
 
 	waitpid(c1_id, NULL, WUNTRACED);
 	waitpid(c2_id, NULL, WUNTRACED);
