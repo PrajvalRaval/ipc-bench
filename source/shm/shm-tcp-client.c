@@ -103,7 +103,7 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args, in
 	atomic_char* guard = (atomic_char*)shared_memory;
 	// atomic_init(guard, 's');
 	// assert(sizeof(atomic_char) == 1);
-	printf("TCP CLIENT UP");
+	printf("\nTCP CLIENT UP\n");
 
 
 	for (; args->count > 0; --args->count) {
@@ -281,6 +281,7 @@ int main(int argc, char* argv[]) {
 	}
 
 	busy_waiting = check_flag("busy", argc, argv);
+	printf("\nshm_tcp_client busy_waiting %d\n",busy_waiting);
 	parse_arguments(&args, argc, argv);
 
 	socket_descriptor = create_socket(busy_waiting);

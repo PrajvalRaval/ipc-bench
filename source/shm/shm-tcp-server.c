@@ -344,6 +344,7 @@ int main(int argc, char* argv[]) {
 	struct Arguments args;
 
 	busy_waiting = check_flag("busy", argc, argv);
+	printf("\nshm_tcp_server busy_waiting %d\n",busy_waiting);
 	parse_arguments(&args, argc, argv);
 
 	segment_key = generate_key("shm");
