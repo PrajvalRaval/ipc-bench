@@ -82,8 +82,8 @@ pid_t start_child(char *name, int argc, char *argv[]) {
 void start_children(char *prefix, int argc, char *argv[]) {
 	char server_name[100];
 	char tcp_server_name[100];
-	char tcp_client_name[100];
-	char client_name[100];
+	// char tcp_client_name[100];
+	// char client_name[100];
 
 	char *build_path = find_build_path();
 
