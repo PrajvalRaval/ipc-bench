@@ -33,7 +33,9 @@ void communicate(char* shared_memory, struct Arguments* args) {
 	assert(sizeof(atomic_char) == 1);
 
 	for (; args->count > 0; --args->count) {
+		printf("\n atomic_load_shm_client bw: %s",atomic_load(guard));
 		shm_wait(guard);
+		printf("\n atomic_load_shm_client aw: %s",atomic_load(guard));
 		// Read
 		memcpy(buffer, shared_memory + 1, args->size);
 
