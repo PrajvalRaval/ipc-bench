@@ -312,10 +312,6 @@ int main(int argc, char* argv[]) {
 
 	strcpy(tun_name, "tun1");
   	tunfd = tun_alloc(tun_name, IFF_TUN);
-    if (tunfd < 0) {
-        fprintf(stderr, "Error opening TUN interface\n");
-        exit(1);
-    }
 
 	communicate(tunfd, shared_memory, &args);
 
