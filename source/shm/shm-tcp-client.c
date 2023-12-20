@@ -87,12 +87,13 @@ void cleanup_shm(char* shared_memory) {
 	shmdt(shared_memory);
 }
 
-void shm_wait(atomic_char* guard) {
-	printf(" ");
-}
+// void shm_wait(atomic_char* guard) {
+// 	while (atomic_load(guard) != 'c')
+// 		;
+// }
 
 void shm_notify(atomic_char* guard) {
-	printf(" ");
+	atomic_store(guard, 'c');
 }
 
 void communicate(char* shared_memory, int descriptor, struct Arguments *args, int busy_waiting) {
@@ -102,8 +103,8 @@ void communicate(char* shared_memory, int descriptor, struct Arguments *args, in
 	buffer = malloc(args->size);
 
 	atomic_char* guard = (atomic_char*)shared_memory;
-	atomic_init(guard, 'b');
-	assert(sizeof(atomic_char) == 1);
+	// atomic_init(guard, 'b');
+	// assert(sizeof(atomic_char) == 1);
 
 	for (; args->count > 0; --args->count) {
 		// Receive data
@@ -111,7 +112,7 @@ void communicate(char* shared_memory, int descriptor, struct Arguments *args, in
 			throw("Error receiving data on client-side");
 		}
 
-		shm_wait(guard);
+		// shm_wait(guard);
 		// Read
 		memcpy(buffer, shared_memory + 1, args->size);
 

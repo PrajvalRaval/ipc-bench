@@ -16,11 +16,12 @@ void cleanup(char* shared_memory) {
 }
 
 void shm_wait(atomic_char* guard) {
-	printf(" ");
+	while (atomic_load(guard) != 'c')
+		;
 }
 
 void shm_notify(atomic_char* guard) {
-	printf(" ");
+	atomic_store(guard, 's');
 }
 
 void communicate(char* shared_memory, struct Arguments* args) {
@@ -28,7 +29,7 @@ void communicate(char* shared_memory, struct Arguments* args) {
 	void* buffer = malloc(args->size);
 
 	atomic_char* guard = (atomic_char*)shared_memory;
-	atomic_init(guard, 'c');
+	atomic_init(guard, 's');
 	assert(sizeof(atomic_char) == 1);
 
 	for (; args->count > 0; --args->count) {

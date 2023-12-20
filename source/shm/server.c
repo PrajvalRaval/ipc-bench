@@ -26,11 +26,12 @@ void cleanup(int segment_id, char* shared_memory) {
 }
 
 void shm_wait(atomic_char* guard) {
-	printf(" ");
+	while (atomic_load(guard) != 's')
+		;
 }
 
 void shm_notify(atomic_char* guard) {
-	printf(" ");
+	atomic_store(guard, 'c');
 }
 
 void communicate(char* shared_memory, struct Arguments* args) {
@@ -49,7 +50,7 @@ void communicate(char* shared_memory, struct Arguments* args) {
 		// Write
 		memset(shared_memory + 1, '*', args->size);
 
-		shm_notify(guard);
+		// shm_notify(guard);
 		shm_wait(guard);
 
 		// Read
@@ -58,7 +59,6 @@ void communicate(char* shared_memory, struct Arguments* args) {
 		benchmark(&bench);
 	}
 
-	printf("\n TEST RESULTS OF SHM:");
 	evaluate(&bench, args);
 	free(buffer);
 }

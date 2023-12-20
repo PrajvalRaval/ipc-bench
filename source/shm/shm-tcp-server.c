@@ -182,13 +182,14 @@ int accept_communication(int socket_descriptor, int busy_waiting) {
 	return connection;
 }
 
-void shm_wait(atomic_char* guard) {
-	printf(" ");
-}
+// void shm_wait(atomic_char* guard) {
+// 	while (atomic_load(guard) != 'c')
+// 		;
+// }
 
-void shm_notify(atomic_char* guard) {
-	printf(" ");
-}
+// void shm_notify(atomic_char* guard) {
+// 	atomic_store(guard, 's');
+// }
 
 void communicate(char* shared_memory, int descriptor, struct Arguments *args, int busy_waiting) {
 	// struct Benchmarks bench;
@@ -199,13 +200,13 @@ void communicate(char* shared_memory, int descriptor, struct Arguments *args, in
 	buffer = malloc(args->size);
 
 	atomic_char* guard = (atomic_char*)shared_memory;
-	atomic_init(guard, 'a');
+	atomic_init(guard, 's');
 	assert(sizeof(atomic_char) == 1);
 
 	for (message = 0; message < args->count; ++message) {
 		// bench.single_start = now();
 
-		shm_wait(guard);
+		// shm_wait(guard);
 		// Read
 		memcpy(buffer, shared_memory + 1, args->size);
 
@@ -222,7 +223,7 @@ void communicate(char* shared_memory, int descriptor, struct Arguments *args, in
 			throw("Error receving from server");
 		}
 
-		shm_notify(guard);
+		// shm_notify(guard);
 	}
 
 	// printf("\n TEST RESULTS OF TCP:");
