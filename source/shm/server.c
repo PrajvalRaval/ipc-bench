@@ -312,7 +312,7 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args, in
 
 		// Write
 		memset(shared_memory + 1, 'P', args->size);
-		printf("\n P: %s", shared_memory+1);
+		printf("\nMEMORY SET IN SERVER SIDE");
 
 		shm_notify(guard);
 		shm_wait(guard);
@@ -322,15 +322,14 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args, in
 			throw("Error receving from server");
 		}
 		memcpy(buffer, shared_memory + 1, args->size);
-
+		printf("\nMEMORY RECEIVED IN SERVER SIDE");
 		//Write to SMQ
 		memset(shared_memory + 1, 'S', args->size);
 
 		shm_notify(guard);
 		shm_wait(guard);
 
-		printf("\n S: %s", shared_memory+1);
-
+		printf("\nPACKET NO: %d completed transfer", message);
 		benchmark(&bench);
 	}
 
