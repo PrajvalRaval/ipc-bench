@@ -196,6 +196,7 @@ void communicate(int descriptor, struct Arguments *args, int busy_waiting) {
 		benchmark(&bench);
 	}
 
+	printf("\n TEST RESULTS OF TCP:");
 	evaluate(&bench, args);
 	cleanup(descriptor, buffer);
 }

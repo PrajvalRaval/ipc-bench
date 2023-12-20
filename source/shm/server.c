@@ -63,6 +63,7 @@ void communicate(char* shared_memory, struct Arguments* args) {
 		benchmark(&bench);
 	}
 
+	printf("\n TEST RESULTS OF SHM:");
 	evaluate(&bench, args);
 	free(buffer);
 }
