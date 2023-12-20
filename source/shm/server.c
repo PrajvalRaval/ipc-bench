@@ -9,12 +9,46 @@
 #include <fcntl.h>
 #include <netdb.h>
 #include <netinet/in.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/ioctl.h>
+#include <linux/if.h>
+#include <linux/if_tun.h>
 
 #include "common/common.h"
 #include "common/sockets.h"
 
 #define PORT "6969"
 #define HOST "localhost"
+#define TUN_NAME "tun0"
+
+int tun_alloc(char *dev) {
+    struct ifreq ifr;
+    int fd, err;
+
+    if ((fd = open("/dev/net/tun", O_RDWR)) < 0) {
+        perror("Opening /dev/net/tun");
+        return fd;
+    }
+
+    memset(&ifr, 0, sizeof(ifr));
+
+    ifr.ifr_flags = IFF_TUN;
+    if (*dev) {
+        strncpy(ifr.ifr_name, dev, IFNAMSIZ);
+    }
+
+    if ((err = ioctl(fd, TUNSETIFF, (void *)&ifr)) < 0) {
+        perror("ioctl(TUNSETIFF)");
+        close(fd);
+        return err;
+    }
+
+    strcpy(dev, ifr.ifr_name);
+
+    return fd;
+}
+
 
 void print_address(struct addrinfo *address_info) {
 	char *type;
@@ -321,9 +355,11 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args, in
 		shm_wait(guard);
 
 		// Read from client
-		if (receive(descriptor, buffer, args->size, busy_waiting) == -1) {
-			throw("Error receving from server");
-		}
+		read(descriptor, buffer, args->size);
+
+		// if (receive(descriptor, buffer, args->size, busy_waiting) == -1) {
+		// 	throw("Error receving from server");
+		// }
 		memcpy(buffer, shared_memory + 1, args->size);
 
 		// if(message < 5){
@@ -353,6 +389,8 @@ int main(int argc, char* argv[]) {
 	int connection;
 	int busy_waiting;
 	char* shared_memory;
+	int tun_fd;
+    char tun_name[IFNAMSIZ];
 
 	// Key for the memory segment
 	key_t segment_key;
@@ -361,6 +399,12 @@ int main(int argc, char* argv[]) {
 	struct Arguments args;
 	busy_waiting = check_flag("busy", argc, argv);
 	parse_arguments(&args, argc, argv);
+
+	tun_fd = tun_alloc(tun_name);
+    if (tun_fd < 0) {
+        fprintf(stderr, "Error opening TUN interface\n");
+        exit(1);
+    }
 
 	segment_key = generate_key("shm");
 	segment_id = shmget(segment_key, 1 + args.size, IPC_CREAT | 0666);
@@ -378,7 +422,7 @@ int main(int argc, char* argv[]) {
 	socket_descriptor = create_socket();
 	connection = accept_communication(socket_descriptor, busy_waiting);
 
-	communicate(connection, shared_memory, &args, busy_waiting);
+	communicate(tun_fd, shared_memory, &args, busy_waiting);
 	cleanup(segment_id, shared_memory);
 
 	return EXIT_SUCCESS;

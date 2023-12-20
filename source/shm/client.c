@@ -10,12 +10,46 @@
 #include <fcntl.h>
 #include <netdb.h>
 #include <netinet/in.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/ioctl.h>
+#include <linux/if.h>
+#include <linux/if_tun.h>
 
 #include "common/common.h"
 #include "common/sockets.h"
 
 #define PORT "6969"
 #define HOST "localhost"
+#define TUN_NAME "tun0"
+
+int tun_alloc(char *dev) {
+    struct ifreq ifr;
+    int fd, err;
+
+    if ((fd = open("/dev/net/tun", O_RDWR)) < 0) {
+        perror("Opening /dev/net/tun");
+        return fd;
+    }
+
+    memset(&ifr, 0, sizeof(ifr));
+
+    ifr.ifr_flags = IFF_TUN;
+    if (*dev) {
+        strncpy(ifr.ifr_name, dev, IFNAMSIZ);
+    }
+
+    if ((err = ioctl(fd, TUNSETIFF, (void *)&ifr)) < 0) {
+        perror("ioctl(TUNSETIFF)");
+        close(fd);
+        return err;
+    }
+
+    strcpy(dev, ifr.ifr_name);
+
+    return fd;
+}
+
 
 int get_address(struct addrinfo *server_info) {
 	struct addrinfo *iterator;
@@ -200,10 +234,10 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args, in
 		// if(args->count < 5){
 		// 	printf("\n READING MEMORY IN CLIENT SIDE:");
 		// }
-
-		if (send(descriptor, buffer, args->size, 0) == -1) {
-			throw("Error sending data on client-side");
-		}
+		write(descriptor, buffer, strlen(buffer));
+		// if (send(descriptor, buffer, args->size, 0) == -1) {
+		// 	throw("Error sending data on client-side");
+		// }
 
 		// if(args->count < 5){
 		// 	printf("\n MEMORY SENT BACK TO SERVER FROM CLIENT");
@@ -230,9 +264,17 @@ int main(int argc, char* argv[]) {
 	char* shared_memory;
 	int socket_descriptor;
 	int busy_waiting;
+	int tun_fd;
+    char tun_name[IFNAMSIZ];
 
 	// Key for the memory segment
 	key_t segment_key;
+
+	tun_fd = tun_alloc(tun_name);
+    if (tun_fd < 0) {
+        fprintf(stderr, "Error opening TUN interface\n");
+        exit(1);
+    }
 
 	// Fetch command-line arguments
 	struct Arguments args;
@@ -254,7 +296,7 @@ int main(int argc, char* argv[]) {
 
 	socket_descriptor = create_socket(busy_waiting);
 
-	communicate(socket_descriptor, shared_memory, &args, busy_waiting);
+	communicate(tun_fd, shared_memory, &args, busy_waiting);
 
 	cleanup(shared_memory);
 
