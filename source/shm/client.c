@@ -16,12 +16,12 @@ void cleanup(char* shared_memory) {
 }
 
 void shm_wait(atomic_char* guard) {
-	while (atomic_load(guard) != 'b')
+	while (atomic_load(guard) != 'c')
 		;
 }
 
 void shm_notify(atomic_char* guard) {
-	atomic_store(guard, 'a');
+	atomic_store(guard, 's');
 }
 
 void communicate(char* shared_memory, struct Arguments* args) {
@@ -29,13 +29,11 @@ void communicate(char* shared_memory, struct Arguments* args) {
 	void* buffer = malloc(args->size);
 
 	atomic_char* guard = (atomic_char*)shared_memory;
-	atomic_init(guard, 'a');
+	atomic_init(guard, 's');
 	assert(sizeof(atomic_char) == 1);
 
 	for (; args->count > 0; --args->count) {
-		printf("\n atomic_load_shm_client bw: %d",atomic_load(guard));
 		shm_wait(guard);
-		printf("\n atomic_load_shm_client aw: %d",atomic_load(guard));
 		// Read
 		memcpy(buffer, shared_memory + 1, args->size);
 

@@ -26,12 +26,12 @@ void cleanup(int segment_id, char* shared_memory) {
 }
 
 void shm_wait(atomic_char* guard) {
-	while (atomic_load(guard) != 'a')
+	while (atomic_load(guard) != 's')
 		;
 }
 
 void shm_notify(atomic_char* guard) {
-	atomic_store(guard, 'b');
+	atomic_store(guard, 'c');
 }
 
 void communicate(char* shared_memory, struct Arguments* args) {
@@ -41,9 +41,7 @@ void communicate(char* shared_memory, struct Arguments* args) {
 	atomic_char* guard = (atomic_char*)shared_memory;
 
 	// Wait for signal from client
-	printf("\n atomic_load_shm_server 1 bw: %d",atomic_load(guard));
 	shm_wait(guard);
-	printf("\n atomic_load_shm_server 1 aw: %d",atomic_load(guard));
 	setup_benchmarks(&bench);
 
 	for (message = 0; message < args->count; ++message) {
@@ -53,9 +51,7 @@ void communicate(char* shared_memory, struct Arguments* args) {
 		memset(shared_memory + 1, '*', args->size);
 
 		shm_notify(guard);
-		printf("\n atomic_load_shm_server 2 bw: %d",atomic_load(guard));
 		shm_wait(guard);
-		printf("\n atomic_load_shm_server 2 aw: %d",atomic_load(guard));
 
 		// Read
 		memcpy(buffer, shared_memory + 1, args->size);
