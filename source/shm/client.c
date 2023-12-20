@@ -79,7 +79,7 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args) {
 		shm_wait(guard);
 		memcpy(buffer, shared_memory + 1, args->size);
 
-		write(descriptor, buffer, strlen(buffer));
+		write(descriptor, buffer, args->size);
 
 		shm_notify(guard);
 		shm_wait(guard);
