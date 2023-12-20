@@ -328,7 +328,7 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args, in
 		shm_notify(guard);
 		shm_wait(guard);
 
-		printf("\n sm: %s", shared_memory);
+		printf("\n sm: %s", shared_memory+1);
 
 		benchmark(&bench);
 	}
