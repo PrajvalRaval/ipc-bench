@@ -331,7 +331,7 @@ void shm_notify(atomic_char* guard) {
 	atomic_store(guard, 'c');
 }
 
-void communicate(int descriptor, char* shared_memory, struct Arguments* args, int busy_waiting) {
+void communicate(int descriptor, char* shared_memory, struct Arguments* args) {
 	struct Benchmarks bench;
 	int message;
 	void* buffer = malloc(args->size);
@@ -384,10 +384,10 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args, in
 
 int main(int argc, char* argv[]) {
 	// The identifier for the shared memory segment
-	int socket_descriptor;
+	// int socket_descriptor;
 	int segment_id;
-	int connection;
-	int busy_waiting;
+	// int connection;
+	// int busy_waiting;
 	char* shared_memory;
 	int tun_fd;
     char tun_name[IFNAMSIZ];
@@ -397,7 +397,7 @@ int main(int argc, char* argv[]) {
 
 	// Fetch command-line arguments
 	struct Arguments args;
-	busy_waiting = check_flag("busy", argc, argv);
+	// busy_waiting = check_flag("busy", argc, argv);
 	parse_arguments(&args, argc, argv);
 
 	tun_fd = tun_alloc(tun_name);
@@ -419,10 +419,10 @@ int main(int argc, char* argv[]) {
 		throw("Error attaching segment");
 	}
 
-	socket_descriptor = create_socket();
-	connection = accept_communication(socket_descriptor, busy_waiting);
+	// socket_descriptor = create_socket();
+	// connection = accept_communication(socket_descriptor, busy_waiting);
 
-	communicate(tun_fd, shared_memory, &args, busy_waiting);
+	communicate(tun_fd, shared_memory, &args);
 	cleanup(segment_id, shared_memory);
 
 	return EXIT_SUCCESS;

@@ -218,7 +218,7 @@ void shm_notify(atomic_char* guard) {
 	atomic_store(guard, 's');
 }
 
-void communicate(int descriptor, char* shared_memory, struct Arguments* args, int busy_waiting) {
+void communicate(int descriptor, char* shared_memory, struct Arguments* args) {
 	// Buffer into which to read data
 	void* buffer = malloc(args->size);
 
@@ -262,8 +262,8 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args, in
 int main(int argc, char* argv[]) {
 	int segment_id;
 	char* shared_memory;
-	int socket_descriptor;
-	int busy_waiting;
+	// int socket_descriptor;
+	// int busy_waiting;
 	int tun_fd;
     char tun_name[IFNAMSIZ];
 
@@ -278,7 +278,7 @@ int main(int argc, char* argv[]) {
 
 	// Fetch command-line arguments
 	struct Arguments args;
-	busy_waiting = check_flag("busy", argc, argv);
+	// busy_waiting = check_flag("busy", argc, argv);
 	parse_arguments(&args, argc, argv);
 
 	segment_key = generate_key("shm");
@@ -294,9 +294,9 @@ int main(int argc, char* argv[]) {
 		throw("Could not attach segment");
 	}
 
-	socket_descriptor = create_socket(busy_waiting);
+	// socket_descriptor = create_socket(busy_waiting);
 
-	communicate(tun_fd, shared_memory, &args, busy_waiting);
+	communicate(tun_fd, shared_memory, &args);
 
 	cleanup(shared_memory);
 
