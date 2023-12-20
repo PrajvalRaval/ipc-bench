@@ -103,6 +103,8 @@ void communicate(char* shared_memory, int descriptor, struct Arguments *args, in
 	buffer = malloc(args->size);
 
 	atomic_char* guard = (atomic_char*)shared_memory;
+	atomic_init(guard, 'b');
+	assert(sizeof(atomic_char) == 1);
 
 	for (; args->count > 0; --args->count) {
 		// Receive data

@@ -29,8 +29,8 @@ void communicate(char* shared_memory, struct Arguments* args) {
 	void* buffer = malloc(args->size);
 
 	atomic_char* guard = (atomic_char*)shared_memory;
-	// atomic_init(guard, 'a');
-	// assert(sizeof(atomic_char) == 1);
+	atomic_init(guard, 'c');
+	assert(sizeof(atomic_char) == 1);
 
 	for (; args->count > 0; --args->count) {
 		shm_wait(guard);
