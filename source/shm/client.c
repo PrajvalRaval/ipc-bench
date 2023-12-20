@@ -310,7 +310,7 @@ int main(int argc, char* argv[]) {
 
 	// socket_descriptor = create_socket(busy_waiting);
 
-	strcpy(tun_name, "tun1");
+	strcpy(tun_name, "tun0");
   	tunfd = tun_alloc(tun_name, IFF_TUN);
 
 	communicate(tunfd, shared_memory, &args);
