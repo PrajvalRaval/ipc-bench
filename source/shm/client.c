@@ -317,7 +317,7 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
 
-	communicate(tun_fd, shared_memory, &args);
+	communicate(tunfd, shared_memory, &args);
 
 	cleanup(shared_memory);
 
