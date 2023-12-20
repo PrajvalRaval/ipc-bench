@@ -203,7 +203,7 @@ void communicate(char* shared_memory, int descriptor, struct Arguments *args, in
 	// setup_benchmarks(&bench);
 	buffer = malloc(args->size);
 
-	atomic_char* guard = (atomic_char*)shared_memory;
+	// atomic_char* guard = (atomic_char*)shared_memory;
 
 	// shm_wait(guard);
 	// shm_notify_pre(guard);
