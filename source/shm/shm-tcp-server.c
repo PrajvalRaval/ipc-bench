@@ -194,7 +194,7 @@ int accept_communication(int socket_descriptor, int busy_waiting) {
 void communicate(char* shared_memory, int descriptor, struct Arguments *args, int busy_waiting) {
 	// struct Benchmarks bench;
 	void *buffer;
-	int message;
+	// int message;
 
 	// setup_benchmarks(&bench);
 	buffer = malloc(args->size);
@@ -203,7 +203,7 @@ void communicate(char* shared_memory, int descriptor, struct Arguments *args, in
 	atomic_init(guard, 's');
 	assert(sizeof(atomic_char) == 1);
 
-	for (message = 0; message < args->count; ++message) {
+	for (; args->count > 0; --args->count) {
 		// bench.single_start = now();
 
 		// shm_wait(guard);

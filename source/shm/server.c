@@ -31,7 +31,7 @@ void shm_wait(atomic_char* guard) {
 }
 
 void shm_notify(atomic_char* guard) {
-	atomic_store(guard, 'c');
+	atomic_store(guard, 'b');
 }
 
 void communicate(char* shared_memory, struct Arguments* args) {
@@ -50,7 +50,7 @@ void communicate(char* shared_memory, struct Arguments* args) {
 		// Write
 		memset(shared_memory + 1, '*', args->size);
 
-		// shm_notify(guard);
+		shm_notify(guard);
 		shm_wait(guard);
 
 		// Read
