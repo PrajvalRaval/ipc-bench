@@ -184,12 +184,12 @@ int accept_communication(int socket_descriptor, int busy_waiting) {
 }
 
 void shm_wait(atomic_char* guard) {
-	while (atomic_load(guard) != 'b')
+	while (atomic_load(guard) != 'c')
 		;
 }
 
 void shm_notify(atomic_char* guard) {
-	atomic_store(guard, 'c');
+	atomic_store(guard, 's');
 }
 
 void communicate(int descriptor, char* shared_memory, struct Arguments* args, int busy_waiting) {
@@ -197,13 +197,13 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args, in
 	void* buffer = malloc(args->size);
 
 	atomic_char* guard = (atomic_char*)shared_memory;
-	atomic_init(guard, 'a');
+	atomic_init(guard, 's');
 	assert(sizeof(atomic_char) == 1);
 
 	for (; args->count > 0; --args->count) {
-		printf("TCP SERVER WAITING");
+		printf("\nTCP SERVER WAITING\n");
 		shm_wait(guard);
-		printf("TCP SERVER UP");
+		printf("\nTCP SERVER UP\n");
 		// Read
 		memcpy(buffer, shared_memory + 1, args->size);
 
@@ -211,11 +211,12 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args, in
 		if (send(descriptor, buffer, args->size, 0) == -1) {
 			throw("Error sending from server");
 		}
+		intf("\nTCP SERVER TCP SENT\n");
 
-		// // Write back
-		// memset(shared_memory + 1, '*', args->size);
+		// Write back
+		memset(shared_memory + 1, '*', args->size);
 
-		// shm_notify(guard);
+		shm_notify(guard);
 	}
 
 	cleanup_tcp(descriptor, buffer);
