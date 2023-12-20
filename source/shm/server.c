@@ -311,7 +311,7 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args, in
 		bench.single_start = now();
 
 		// Write
-		memset(shared_memory + 1, '*', args->size);
+		memset(shared_memory + 1, 'P', args->size);
 
 		shm_notify(guard);
 		shm_wait(guard);
@@ -323,10 +323,12 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args, in
 		memcpy(buffer, shared_memory + 1, args->size);
 
 		//Write to SMQ
-		memset(shared_memory + 1, '*', args->size);
+		memset(shared_memory + 1, 'S', args->size);
 
 		shm_notify(guard);
 		shm_wait(guard);
+
+		printf("\n sm: %s", shared_memory);
 
 		benchmark(&bench);
 	}
