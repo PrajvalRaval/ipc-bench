@@ -16,12 +16,11 @@ void cleanup(char* shared_memory) {
 }
 
 void shm_wait(atomic_char* guard) {
-	while (atomic_load(guard) != 'd')
-		;
+	printf("\n shmcserver %u",guard);
 }
 
 void shm_notify(atomic_char* guard) {
-	atomic_store(guard, 'a');
+	printf("\n shmcserver %u",guard);
 }
 
 void communicate(char* shared_memory, struct Arguments* args) {

@@ -88,12 +88,11 @@ void cleanup_shm(char* shared_memory) {
 }
 
 void shm_wait(atomic_char* guard) {
-	while (atomic_load(guard) != 'c')
-		;
+	printf("\n shmtcpc %u",guard);
 }
 
 void shm_notify(atomic_char* guard) {
-	atomic_store(guard, 'd');
+	printf("\n shmtcpc %u",guard);
 }
 
 void communicate(char* shared_memory, int descriptor, struct Arguments *args, int busy_waiting) {
