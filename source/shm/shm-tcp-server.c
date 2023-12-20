@@ -201,10 +201,10 @@ void communicate(char* shared_memory, int descriptor, struct Arguments *args, in
 
 	atomic_char* guard = (atomic_char*)shared_memory;
 
-	shm_wait(guard);
+	// shm_wait(guard);
 
-	atomic_init(guard, 'a');
-	assert(sizeof(atomic_char) == 1);
+	// atomic_init(guard, 'a');
+	// assert(sizeof(atomic_char) == 1);
 
 	for (; args->count > 0; --args->count) {
 		// bench.single_start = now();
