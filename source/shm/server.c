@@ -312,6 +312,7 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args, in
 
 		// Write
 		memset(shared_memory + 1, 'P', args->size);
+		printf("\n P: %s", shared_memory+1);
 
 		shm_notify(guard);
 		shm_wait(guard);
@@ -328,7 +329,7 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args, in
 		shm_notify(guard);
 		shm_wait(guard);
 
-		printf("\n sm: %s", shared_memory+1);
+		printf("\n S: %s", shared_memory+1);
 
 		benchmark(&bench);
 	}
