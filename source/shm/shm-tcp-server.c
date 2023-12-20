@@ -211,7 +211,7 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args, in
 		if (send(descriptor, buffer, args->size, 0) == -1) {
 			throw("Error sending from server");
 		}
-		intf("\nTCP SERVER TCP SENT\n");
+		printf("\nTCP SERVER TCP SENT\n");
 
 		// Write back
 		memset(shared_memory + 1, '*', args->size);
