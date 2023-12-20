@@ -21,33 +21,53 @@
 
 #define PORT "6969"
 #define HOST "localhost"
-#define TUN_NAME "tun0"
+// #define TUN_NAME "tun0"
 
-int tun_alloc(char *dev) {
-    struct ifreq ifr;
-    int fd, err;
+int tun_alloc(char *dev, int flags) {
 
-    if ((fd = open("/dev/net/tun", O_RDWR)) < 0) {
-        perror("Opening /dev/net/tun");
-        return fd;
-    }
+  struct ifreq ifr;
+  int fd, err;
+  char *clonedev = "/dev/net/tun";
 
-    memset(&ifr, 0, sizeof(ifr));
+  /* Arguments taken by the function:
+   *
+   * char *dev: the name of an interface (or '\0'). MUST have enough
+   *   space to hold the interface name if '\0' is passed
+   * int flags: interface flags (eg, IFF_TUN etc.)
+   */
 
-    ifr.ifr_flags = IFF_TUN;
-    if (*dev) {
-        strncpy(ifr.ifr_name, dev, IFNAMSIZ);
-    }
+   /* open the clone device */
+   if( (fd = open(clonedev, O_RDWR)) < 0 ) {
+     return fd;
+   }
 
-    if ((err = ioctl(fd, TUNSETIFF, (void *)&ifr)) < 0) {
-        perror("ioctl(TUNSETIFF)");
-        close(fd);
-        return err;
-    }
+   /* preparation of the struct ifr, of type "struct ifreq" */
+   memset(&ifr, 0, sizeof(ifr));
 
-    strcpy(dev, ifr.ifr_name);
+   ifr.ifr_flags = flags;   /* IFF_TUN or IFF_TAP, plus maybe IFF_NO_PI */
 
-    return fd;
+   if (*dev) {
+     /* if a device name was specified, put it in the structure; otherwise,
+      * the kernel will try to allocate the "next" device of the
+      * specified type */
+     strncpy(ifr.ifr_name, dev, IFNAMSIZ);
+   }
+
+   /* try to create the device */
+   if( (err = ioctl(fd, TUNSETIFF, (void *) &ifr)) < 0 ) {
+     close(fd);
+     return err;
+   }
+
+  /* if the operation was successful, write back the name of the
+   * interface to the variable "dev", so the caller can know
+   * it. Note that the caller MUST reserve space in *dev (see calling
+   * code below) */
+  strcpy(dev, ifr.ifr_name);
+
+  /* this is the special file descriptor that the caller will use to talk
+   * with the virtual interface */
+  return fd;
 }
 
 
@@ -264,17 +284,11 @@ int main(int argc, char* argv[]) {
 	char* shared_memory;
 	// int socket_descriptor;
 	// int busy_waiting;
-	int tun_fd;
+	int tunfd;
     char tun_name[IFNAMSIZ];
 
 	// Key for the memory segment
 	key_t segment_key;
-
-	tun_fd = tun_alloc(tun_name);
-    if (tun_fd < 0) {
-        fprintf(stderr, "Error opening TUN interface\n");
-        exit(1);
-    }
 
 	// Fetch command-line arguments
 	struct Arguments args;
@@ -295,6 +309,13 @@ int main(int argc, char* argv[]) {
 	}
 
 	// socket_descriptor = create_socket(busy_waiting);
+
+	strcpy(tun_name, "tun1");
+  	tunfd = tun_alloc(tun_name, IFF_TUN);
+    if (tunfd < 0) {
+        fprintf(stderr, "Error opening TUN interface\n");
+        exit(1);
+    }
 
 	communicate(tun_fd, shared_memory, &args);
 
