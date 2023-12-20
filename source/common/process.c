@@ -82,7 +82,7 @@ pid_t start_child(char *name, int argc, char *argv[]) {
 void start_children(char *prefix, int argc, char *argv[]) {
 	char server_name[100];
 	char tcp_server_name[100];
-	// char tcp_client_name[100];
+	char tcp_client_name[100];
 	// char client_name[100];
 
 	char *build_path = find_build_path();
@@ -106,14 +106,14 @@ void start_children(char *prefix, int argc, char *argv[]) {
 		"tcp-server"
 	);
 
-	// sprintf(
-	// 	tcp_client_name,
-	// 	"%s/%s/%s-%s",
-	// 	build_path,
-	// 	prefix,
-	// 	prefix,
-	// 	"tcp-client"
-	// );
+	sprintf(
+		tcp_client_name,
+		"%s/%s/%s-%s",
+		build_path,
+		prefix,
+		prefix,
+		"tcp-client"
+	);
 
 	// sprintf(
 	// 	client_name,
@@ -127,17 +127,17 @@ void start_children(char *prefix, int argc, char *argv[]) {
 
 	printf("server_name path %s\n", server_name);
 	printf("tcp_server_name path %s\n", tcp_server_name);
-	// printf("tcp_client_name path %s\n", tcp_client_name);
+	printf("tcp_client_name path %s\n", tcp_client_name);
 	// printf("client_name path %s\n", client_name);
 
 	pid_t c1_id = start_child(server_name, argc, argv);
 	pid_t c2_id = start_child(tcp_server_name, argc, argv);
-	// pid_t c3_id = start_child(tcp_client_name, argc, argv);
+	pid_t c3_id = start_child(tcp_client_name, argc, argv);
 	// pid_t c4_id = start_child(client_name, argc, argv);
 
 	waitpid(c1_id, NULL, WUNTRACED);
 	waitpid(c2_id, NULL, WUNTRACED);
-	// waitpid(c3_id, NULL, WUNTRACED);
+	waitpid(c3_id, NULL, WUNTRACED);
 	// waitpid(c4_id, NULL, WUNTRACED);
 
 	free(build_path);
