@@ -197,25 +197,25 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args, in
 		// Read
 		memcpy(buffer, shared_memory + 1, args->size);
 
-		if(args->count < 5){
-			printf("\n READING MEMORY IN CLIENT SIDE:");
-		}
+		// if(args->count < 5){
+		// 	printf("\n READING MEMORY IN CLIENT SIDE:");
+		// }
 
 		if (send(descriptor, buffer, args->size, 0) == -1) {
 			throw("Error sending data on client-side");
 		}
 
-		if(args->count < 5){
-			printf("\n MEMORY SENT BACK TO SERVER FROM CLIENT");
-		}
+		// if(args->count < 5){
+		// 	printf("\n MEMORY SENT BACK TO SERVER FROM CLIENT");
+		// }
 
 		shm_notify(guard);
 		shm_wait(guard);
 
 		// Read
-		if(args->count < 5){
-			printf("\n READING MEMORY SET BY SERVER IN CLIENT");
-		}
+		// if(args->count < 5){
+		// 	printf("\n READING MEMORY SET BY SERVER IN CLIENT");
+		// }
 
 		memcpy(buffer, shared_memory + 1, args->size);
 
