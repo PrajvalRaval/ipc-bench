@@ -205,13 +205,13 @@ void communicate(char* shared_memory, int descriptor, struct Arguments *args, in
 
 	atomic_char* guard = (atomic_char*)shared_memory;
 
-	shm_wait(guard);
-	shm_notify_pre(guard);
+	// shm_wait(guard);
+	// shm_notify_pre(guard);
 
 	for (; args->count > 0; --args->count) {
 		// bench.single_start = now();
 
-		shm_wait(guard);
+		// shm_wait(guard);
 		// Read
 		memcpy(buffer, shared_memory + 1, args->size);
 
@@ -228,7 +228,7 @@ void communicate(char* shared_memory, int descriptor, struct Arguments *args, in
 			throw("Error receving from server");
 		}
 
-		shm_notify(guard);
+		// shm_notify(guard);
 	}
 
 	// printf("\n TEST RESULTS OF TCP:");

@@ -108,14 +108,14 @@ void communicate(char* shared_memory, int descriptor, struct Arguments *args, in
 
 	atomic_char* guard = (atomic_char*)shared_memory;
 
-	shm_wait(guard);
+	// shm_wait(guard);
 
-	shm_notify_pre(guard);
+	// shm_notify_pre(guard);
 
 	for (; args->count > 0; --args->count) {
 		// Receive data
 
-		shm_wait(guard);
+		// shm_wait(guard);
 
 		if (receive(descriptor, buffer, args->size, busy_waiting) == -1) {
 			throw("Error receiving data on client-side");
