@@ -244,11 +244,6 @@ int main(int argc, char *argv[]) {
 	// Key for the memory segment
 	key_t segment_key;
 
-	// Fetch command-line arguments
-	struct Arguments args;
-
-	parse_arguments(&args, argc, argv);
-
 	segment_key = generate_key("shm");
 
 	/*

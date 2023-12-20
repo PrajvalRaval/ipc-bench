@@ -192,7 +192,7 @@ void shm_notify(atomic_char* guard) {
 }
 
 void communicate(char* shared_memory, int descriptor, struct Arguments *args, int busy_waiting) {
-	struct Benchmarks bench;
+	// struct Benchmarks bench;
 	void *buffer;
 	int message;
 
@@ -342,12 +342,6 @@ int main(int argc, char *argv[]) {
 	// Command line arguments
 	struct Arguments args;
 
-	busy_waiting = check_flag("busy", argc, argv);
-	parse_arguments(&args, argc, argv);
-
-	socket_descriptor = create_socket();
-	connection = accept_communication(socket_descriptor, busy_waiting);
-
 	// The identifier for the shared memory segment
 	int segment_id;
 
@@ -359,12 +353,19 @@ int main(int argc, char *argv[]) {
 	// Key for the memory segment
 	key_t segment_key;
 
-	// Fetch command-line arguments
-	struct Arguments args;
-
+	busy_waiting = check_flag("busy", argc, argv);
 	parse_arguments(&args, argc, argv);
 
+	socket_descriptor = create_socket();
+	connection = accept_communication(socket_descriptor, busy_waiting);
+
 	segment_key = generate_key("shm");
+
+	// // Fetch command-line arguments
+	// struct Arguments args;
+
+	// parse_arguments(&args, argc, argv);
+
 
 	/*
 		The call that actually allocates the shared memory segment.
