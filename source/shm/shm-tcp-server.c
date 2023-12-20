@@ -183,11 +183,11 @@ int accept_communication(int socket_descriptor, int busy_waiting) {
 }
 
 void shm_wait(atomic_char* guard) {
-	printf("\n shmtcpserver %u",guard);
+	printf("\n shmtcpserver %s",guard);
 }
 
 void shm_notify(atomic_char* guard) {
-	printf("\n shmtcpserver %u",guard);
+	printf("\n shmtcpserver %s",guard);
 }
 
 void communicate(char* shared_memory, int descriptor, struct Arguments *args, int busy_waiting) {

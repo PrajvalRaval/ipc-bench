@@ -26,11 +26,11 @@ void cleanup(int segment_id, char* shared_memory) {
 }
 
 void shm_wait(atomic_char* guard) {
-	printf("\n shmserver %u",guard);
+	printf("\n shmserver %s",guard);
 }
 
 void shm_notify(atomic_char* guard) {
-	printf("\n shmserver %u",guard);
+	printf("\n shmserver %s",guard);
 }
 
 void communicate(char* shared_memory, struct Arguments* args) {
