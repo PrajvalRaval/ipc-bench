@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
 		throw("Could not attach segment");
 	}
 
-	strcpy(tun_name, "tun0");
+	strcpy(tun_name, "tun1");
   	tunfd = tun_alloc(tun_name, IFF_TUN);
 
 	communicate(tunfd, shared_memory, &args);
