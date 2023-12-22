@@ -19,6 +19,23 @@
 #include "common/common.h"
 #include "common/sockets.h"
 
+uint16_t ip_sum(void *data, size_t len) {
+    uint32_t sum = 0;
+    uint16_t *buf = (uint16_t *)data;
+
+    while (len > 1) {
+        sum += *buf++;
+        if (sum & 0x80000000)
+            sum = (sum & 0xFFFF) + (sum >> 16);
+        len -= 2;
+    }
+
+    while (sum >> 16)
+        sum = (sum & 0xFFFF) + (sum >> 16);
+
+    return ~sum;
+}
+
 void create_ip_packet(char *buffer, const char *source_ip, const char *dest_ip) {
     struct iphdr *ip_header = (struct iphdr *)buffer;
 
@@ -29,9 +46,12 @@ void create_ip_packet(char *buffer, const char *source_ip, const char *dest_ip) 
     ip_header->frag_off = 0;
     ip_header->ttl = 64;
     ip_header->protocol = IPPROTO_TCP;
-    ip_header->check = 0; // You may want to calculate the correct checksum
+    ip_header->check = 0;
     ip_header->saddr = inet_addr(source_ip);
     ip_header->daddr = inet_addr(dest_ip);
+
+    // Calculate and set the correct checksum
+    ip_header->check = ip_sum(ip_header, sizeof(struct iphdr));
 }
 
 
