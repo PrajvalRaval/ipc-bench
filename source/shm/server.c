@@ -81,7 +81,7 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args) {
         bench.single_start = now();
 
         // Use struct iphdr to set up the IP header
-        struct iphdr* ip_header = (struct iphdr*) (shared_memory + 1);
+        struct iphdr* ip_header = (struct iphdr*) (buffer);
         ip_header->version = 4; // IPv4
         ip_header->ihl = 5;     // Header length (5 words)
         ip_header->ttl = 64;    // Time to live
@@ -90,15 +90,21 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args) {
         ip_header->daddr = inet_addr("172.19.16.1"); // Destination IP (modify as needed)
 
         // Use the rest of the buffer for payload data
-        char* payload = shared_memory + 1 + sizeof(struct iphdr);
+        char* payload = (char*)(buffer + sizeof(struct iphdr));
         memset(payload, 'P', args->size - sizeof(struct iphdr));
+
+        // Copy the buffer to shared memory
+        memcpy(shared_memory + 1, buffer, args->size);
 
         shm_notify(guard);
         shm_wait(guard);
 
         // Read from client
         read(descriptor, buffer, args->size);
-        memcpy(buffer, shared_memory + 1, args->size);
+
+        // Copy the buffer to shared memory
+        memcpy(shared_memory + 1, buffer, args->size);
+
         memset(shared_memory + 1, 'S', args->size);
 
         shm_notify(guard);
@@ -110,6 +116,7 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args) {
     evaluate(&bench, args);
     cleanup_tcp(descriptor, buffer);
 }
+
 
 int main(int argc, char* argv[]) {
 	int segment_id;
