@@ -1,93 +1,133 @@
+#include <signal.h>
+#include <stdatomic.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/shm.h>
 #include <unistd.h>
+#include <arpa/inet.h>
 #include <fcntl.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/ioctl.h>
-#include <sys/socket.h>
 #include <linux/if.h>
 #include <linux/if_tun.h>
-#include <netinet/ip.h>
 
-#define BUFSIZE 2000
+#include "common/common.h"
+#include "common/sockets.h"
 
-int tun_alloc(char *dev) {
-    struct ifreq ifr;
-    int fd, err;
+int tun_alloc(char *dev, int flags) {
 
-    if ((fd = open("/dev/net/tun", O_RDWR)) < 0) {
-        perror("Opening /dev/net/tun");
-        exit(1);
-    }
+  struct ifreq ifr;
+  int fd, err;
+  char *clonedev = "/dev/net/tun";
 
-    memset(&ifr, 0, sizeof(ifr));
-    ifr.ifr_flags = IFF_TUN | IFF_NO_PI;
-    if (*dev) {
-        strncpy(ifr.ifr_name, dev, IFNAMSIZ);
-    }
+   if( (fd = open(clonedev, O_RDWR)) < 0 ) {
+     return fd;
+   }
 
-    if ((err = ioctl(fd, TUNSETIFF, (void *)&ifr)) < 0) {
-        perror("ioctl(TUNSETIFF)");
-        close(fd);
-        exit(1);
-    }
+   memset(&ifr, 0, sizeof(ifr));
 
-    strcpy(dev, ifr.ifr_name);
-    return fd;
+   ifr.ifr_flags = flags;
+
+   if (*dev) {
+     strncpy(ifr.ifr_name, dev, IFNAMSIZ);
+   }
+
+   /* try to create the device */
+   if( (err = ioctl(fd, TUNSETIFF, (void *) &ifr)) < 0 ) {
+     close(fd);
+     return err;
+   }
+
+  strcpy(dev, ifr.ifr_name);
+
+  return fd;
 }
 
-void create_ip_packet(char *buffer, const char *source_ip, const char *dest_ip) {
-    struct iphdr *ip_header = (struct iphdr *)buffer;
-
-    ip_header->ihl = 5;
-    ip_header->version = 4;
-    ip_header->tos = 0;
-    ip_header->id = htons(54321);
-    ip_header->frag_off = 0;
-    ip_header->ttl = 64;
-    ip_header->protocol = IPPROTO_TCP;
-    ip_header->check = 0; // You may want to calculate the correct checksum
-    ip_header->saddr = inet_addr(source_ip);
-    ip_header->daddr = inet_addr(dest_ip);
+void cleanup_tcp(int descriptor, void *buffer) {
+	close(descriptor);
+	free(buffer);
 }
 
-int main() {
+void cleanup(int segment_id, char* shared_memory) {
+	shmdt(shared_memory);
+	shmctl(segment_id, IPC_RMID, NULL);
+}
+
+void shm_wait(atomic_char* guard) {
+	while (atomic_load(guard) != 's')
+		;
+}
+
+void shm_notify(atomic_char* guard) {
+	atomic_store(guard, 'c');
+}
+
+void communicate(int descriptor, char* shared_memory, struct Arguments* args) {
+	struct Benchmarks bench;
+	int message;
+	void* buffer = malloc(args->size);
+	atomic_char* guard = (atomic_char*)shared_memory;
+
+	// Wait for signal from client
+	shm_wait(guard);
+	setup_benchmarks(&bench);
+
+	for (message = 0; message < args->count; ++message) {
+		bench.single_start = now();
+
+		memset(shared_memory + 1, 'P', args->size);
+
+		shm_notify(guard);
+		shm_wait(guard);
+
+		// Read from client
+		read(descriptor, buffer, args->size);
+		memcpy(buffer, shared_memory + 1, args->size);
+		memset(shared_memory + 1, 'S', args->size);
+
+		shm_notify(guard);
+		shm_wait(guard);
+
+		benchmark(&bench);
+	}
+
+	evaluate(&bench, args);
+	cleanup_tcp(descriptor, buffer);
+}
+
+int main(int argc, char* argv[]) {
+	int segment_id;
+	char* shared_memory;
+	int tunfd;
     char tun_name[IFNAMSIZ];
-    int tun_fd;
 
-	strcpy(tun_name, "tun1");
-    tun_fd = tun_alloc(tun_name);
+	key_t segment_key;
 
-    // Assume tun0 and tun1 exist
-    // system("ip link set dev tun0 up");
-    // system("ip link set dev tun1 up");
+	struct Arguments args;
+	parse_arguments(&args, argc, argv);
 
-    // iptables rules (unchanged)
+	segment_key = generate_key("shm");
+	segment_id = shmget(segment_key, 1 + args.size, IPC_CREAT | 0666);
 
-    while (1) {
-        char buf[BUFSIZE];
-        ssize_t len;
+	if (segment_id < 0) {
+		throw("Error allocating segment");
+	}
 
-        // Create an IP packet in the buffer
-        create_ip_packet(buf, "172.19.32.1", "172.19.16.1");
+	shared_memory = (char*)shmat(segment_id, NULL, 0);
 
-        // Write to tun1
-        write(tun_fd, buf, sizeof(struct iphdr));
+	if (shared_memory == (char*)-1) {
+		throw("Error attaching segment");
+	}
 
-        // You may want to modify, process, or inspect the packet as needed
+	strcpy(tun_name, "tun0");
+  	tunfd = tun_alloc(tun_name, IFF_TUN);
 
-        // Read from tun0
-        len = read(tun_fd, buf, sizeof(buf));
+	communicate(tunfd, shared_memory, &args);
+	cleanup(segment_id, shared_memory);
 
-        // Process or inspect the received packet
-
-        // Write to tun1
-        write(tun_fd, buf, len);
-    }
-
-    // Cleanup (unchanged)
-
-    close(tun_fd);
-
-    return 0;
+	return EXIT_SUCCESS;
 }

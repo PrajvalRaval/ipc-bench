@@ -15,46 +15,9 @@
 #include <sys/ioctl.h>
 #include <linux/if.h>
 #include <linux/if_tun.h>
-#include <netinet/ip.h>
 
 #include "common/common.h"
 #include "common/sockets.h"
-
-uint16_t ip_sum(void *data, size_t len) {
-    uint32_t sum = 0;
-    uint16_t *buf = (uint16_t *)data;
-
-    while (len > 1) {
-        sum += *buf++;
-        if (sum & 0x80000000)
-            sum = (sum & 0xFFFF) + (sum >> 16);
-        len -= 2;
-    }
-
-    while (sum >> 16)
-        sum = (sum & 0xFFFF) + (sum >> 16);
-
-    return ~sum;
-}
-
-void create_ip_packet(char *buffer, const char *source_ip, const char *dest_ip) {
-    struct iphdr *ip_header = (struct iphdr *)buffer;
-
-    ip_header->ihl = 5;
-    ip_header->version = 4;
-    ip_header->tos = 0;
-    ip_header->id = htons(54321);
-    ip_header->frag_off = 0;
-    ip_header->ttl = 64;
-    ip_header->protocol = IPPROTO_TCP;
-    ip_header->check = 0;
-    ip_header->saddr = inet_addr(source_ip);
-    ip_header->daddr = inet_addr(dest_ip);
-
-    // Calculate and set the correct checksum
-    ip_header->check = ip_sum(ip_header, sizeof(struct iphdr));
-}
-
 
 int tun_alloc(char *dev, int flags) {
 
@@ -106,10 +69,7 @@ void shm_notify(atomic_char* guard) {
 
 void communicate(int descriptor, char* shared_memory, struct Arguments* args) {
 	// Buffer into which to read data
-	// void* buffer = malloc(args->size);
-	char buffer[args->size];
-	create_ip_packet(buffer, "127.0.0.1", "172.19.32.1");
-	// create_ip_packet(buffer, "172.19.32.1", "172.19.16.1");
+	void* buffer = malloc(args->size);
 
 	atomic_char* guard = (atomic_char*)shared_memory;
 	atomic_init(guard, 's');
@@ -117,15 +77,14 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args) {
 
 	for (; args->count > 0; --args->count) {
 		shm_wait(guard);
-		// memcpy(buffer, shared_memory + 1, args->size);
-		// read(descriptor, buffer, sizeof(buffer));
-		write(descriptor, buffer, sizeof(struct iphdr));
+		memcpy(buffer, shared_memory + 1, args->size);
+
+		write(descriptor, buffer, args->size);
 
 		shm_notify(guard);
 		shm_wait(guard);
 
-		// memcpy(buffer, shared_memory + 1, args->size);
-		read(descriptor, buffer, sizeof(buffer));
+		memcpy(buffer, shared_memory + 1, args->size);
 
 		shm_notify(guard);
 	}
