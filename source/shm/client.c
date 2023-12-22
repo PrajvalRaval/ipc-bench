@@ -108,7 +108,7 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args) {
 	// Buffer into which to read data
 	// void* buffer = malloc(args->size);
 	char buffer[args->size];
-	create_ip_packet(buffer, "172.19.32.1", "172.19.16.1");
+	create_ip_packet(buffer, "127.0.0.1", "172.19.32.1");
 	// create_ip_packet(buffer, "172.19.32.1", "172.19.16.1");
 
 	atomic_char* guard = (atomic_char*)shared_memory;
