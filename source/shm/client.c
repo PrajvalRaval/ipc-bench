@@ -15,9 +15,11 @@
 #include <sys/ioctl.h>
 #include <linux/if.h>
 #include <linux/if_tun.h>
+#include <netinet/ip.h>
 
 #include "common/common.h"
 #include "common/sockets.h"
+
 
 int tun_alloc(char *dev, int flags) {
 
@@ -69,7 +71,9 @@ void shm_notify(atomic_char* guard) {
 
 void communicate(int descriptor, char* shared_memory, struct Arguments* args) {
 	// Buffer into which to read data
-	void* buffer = malloc(args->size);
+	// void* buffer = malloc(args->size);
+	char buffer[args->size];
+	// create_ip_packet(buffer, "192.168.1.1", "192.168.2.1");
 
 	atomic_char* guard = (atomic_char*)shared_memory;
 	atomic_init(guard, 's');
@@ -77,8 +81,8 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args) {
 
 	for (; args->count > 0; --args->count) {
 		shm_wait(guard);
-		memcpy(buffer, shared_memory + 1, args->size);
 
+		memcpy(buffer, shared_memory + 1, args->size);
 		write(descriptor, buffer, args->size);
 
 		shm_notify(guard);

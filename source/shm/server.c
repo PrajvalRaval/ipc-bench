@@ -14,9 +14,25 @@
 #include <sys/ioctl.h>
 #include <linux/if.h>
 #include <linux/if_tun.h>
+#include <netinet/ip.h>
 
 #include "common/common.h"
 #include "common/sockets.h"
+
+void create_ip_packet(char *buffer, const char *source_ip, const char *dest_ip) {
+    struct iphdr *ip_header = (struct iphdr *)buffer;
+
+    ip_header->ihl = 5;
+    ip_header->version = 4;
+    ip_header->tos = 0;
+    ip_header->id = htons(54321);
+    ip_header->frag_off = 0;
+    ip_header->ttl = 64;
+    ip_header->protocol = IPPROTO_TCP;
+    ip_header->check = 0; // You may want to calculate the correct checksum
+    ip_header->saddr = inet_addr(source_ip);
+    ip_header->daddr = inet_addr(dest_ip);
+}
 
 int tun_alloc(char *dev, int flags) {
 
@@ -69,7 +85,9 @@ void shm_notify(atomic_char* guard) {
 void communicate(int descriptor, char* shared_memory, struct Arguments* args) {
 	struct Benchmarks bench;
 	int message;
-	void* buffer = malloc(args->size);
+	// void* buffer = malloc(args->size);
+	char buffer[args->size];
+	create_ip_packet(buffer, "172.19.16.1", "172.19.32.1");
 	atomic_char* guard = (atomic_char*)shared_memory;
 
 	// Wait for signal from client
@@ -79,7 +97,7 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args) {
 	for (message = 0; message < args->count; ++message) {
 		bench.single_start = now();
 
-		memset(shared_memory + 1, 'P', args->size);
+		memset(shared_memory + 1, buffer, args->size);
 
 		shm_notify(guard);
 		shm_wait(guard);
@@ -87,7 +105,7 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args) {
 		// Read from client
 		read(descriptor, buffer, args->size);
 		memcpy(buffer, shared_memory + 1, args->size);
-		memset(shared_memory + 1, 'S', args->size);
+		memset(shared_memory + 1, buffer, args->size);
 
 		shm_notify(guard);
 		shm_wait(guard);
