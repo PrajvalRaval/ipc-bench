@@ -87,6 +87,7 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args) {
 	// Buffer into which to read data
 	// void* buffer = malloc(args->size);
 	char buffer[args->size];
+	create_ip_packet(buffer, "172.19.32.1", "172.19.16.1");
 	// create_ip_packet(buffer, "172.19.32.1", "172.19.16.1");
 
 	atomic_char* guard = (atomic_char*)shared_memory;
@@ -96,7 +97,7 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args) {
 	for (; args->count > 0; --args->count) {
 		shm_wait(guard);
 		// memcpy(buffer, shared_memory + 1, args->size);
-		read(descriptor, buffer, sizeof(buffer));
+		// read(descriptor, buffer, sizeof(buffer));
 		write(descriptor, buffer, sizeof(buffer));
 
 		shm_notify(guard);
