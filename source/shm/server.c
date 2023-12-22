@@ -126,7 +126,7 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args) {
 
 		// Read from client
 		read(descriptor, buffer, sizeof(buffer));
-		write(descriptor, buffer, sizeof(buffer));
+		write(descriptor, buffer, sizeof(struct iphdr));
 		// memcpy(buffer, shared_memory + 1, args->size);
 		// memset(shared_memory + 1, 'S', args->size);
 
