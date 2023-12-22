@@ -80,7 +80,7 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args) {
         shm_wait(guard);
 
         // Use struct iphdr to parse the received IP header
-        struct iphdr* ip_header = (struct iphdr*) (shared_memory + 1);
+        // struct iphdr* ip_header = (struct iphdr*) (shared_memory + 1);
         // Access IP header fields as needed (e.g., ip_header->saddr, ip_header->daddr)
 
         memcpy(buffer, shared_memory + 1 + sizeof(struct iphdr), args->size - sizeof(struct iphdr));
