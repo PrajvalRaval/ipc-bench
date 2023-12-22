@@ -1,60 +1,75 @@
-#include <arpa/inet.h>
 #include <assert.h>
-#include <fcntl.h>
-#include <linux/if.h>
-#include <linux/if_tun.h>
-#include <netdb.h>
-#include <netinet/in.h>
 #include <signal.h>
 #include <stdatomic.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/ioctl.h>
 #include <sys/shm.h>
-#include <sys/stat.h>
-#include <sys/types.h>
 #include <unistd.h>
-#include <netinet/ip.h>
+#include <arpa/inet.h>
+#include <fcntl.h>
+#include <netdb.h>
 #include <netinet/in.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/ioctl.h>
+#include <linux/if.h>
+#include <linux/if_tun.h>
+#include <netinet/ip.h>
 
 #include "common/common.h"
 #include "common/sockets.h"
 
-int tun_alloc(char* dev, int flags) {
-	struct ifreq ifr;
-	int fd, err;
-	char* clonedev = "/dev/net/tun";
+void create_ip_packet(char *buffer, const char *source_ip, const char *dest_ip) {
+    struct iphdr *ip_header = (struct iphdr *)buffer;
 
-	/* open the clone device */
-	if ((fd = open(clonedev, O_RDWR)) < 0) {
-		return fd;
-	}
+    ip_header->ihl = 5;
+    ip_header->version = 4;
+    ip_header->tos = 0;
+    ip_header->id = htons(54321);
+    ip_header->frag_off = 0;
+    ip_header->ttl = 64;
+    ip_header->protocol = IPPROTO_TCP;
+    ip_header->check = 0; // You may want to calculate the correct checksum
+    ip_header->saddr = inet_addr(source_ip);
+    ip_header->daddr = inet_addr(dest_ip);
+}
 
-	/* preparation of the struct ifr, of type "struct ifreq" */
-	memset(&ifr, 0, sizeof(ifr));
+int tun_alloc(char *dev, int flags) {
 
-	ifr.ifr_flags = flags; /* IFF_TUN or IFF_TAP, plus maybe IFF_NO_PI */
+  struct ifreq ifr;
+  int fd, err;
+  char *clonedev = "/dev/net/tun";
 
-	if (*dev) {
-		strncpy(ifr.ifr_name, dev, IFNAMSIZ);
-	}
+   /* open the clone device */
+   if( (fd = open(clonedev, O_RDWR)) < 0 ) {
+     return fd;
+   }
 
-	/* try to create the device */
-	if ((err = ioctl(fd, TUNSETIFF, (void*)&ifr)) < 0) {
-		close(fd);
-		return err;
-	}
+   /* preparation of the struct ifr, of type "struct ifreq" */
+   memset(&ifr, 0, sizeof(ifr));
 
-	strcpy(dev, ifr.ifr_name);
-	return fd;
+   ifr.ifr_flags = flags;   /* IFF_TUN or IFF_TAP, plus maybe IFF_NO_PI */
+
+   if (*dev) {
+     strncpy(ifr.ifr_name, dev, IFNAMSIZ);
+   }
+
+   /* try to create the device */
+   if( (err = ioctl(fd, TUNSETIFF, (void *) &ifr)) < 0 ) {
+     close(fd);
+     return err;
+   }
+
+  strcpy(dev, ifr.ifr_name);
+  return fd;
 }
 
 void cleanup(char* shared_memory) {
 	shmdt(shared_memory);
 }
 
-void cleanup_tcp(int descriptor, void* buffer) {
+void cleanup_tcp(int descriptor, void *buffer) {
 	close(descriptor);
 	free(buffer);
 }
@@ -69,45 +84,38 @@ void shm_notify(atomic_char* guard) {
 }
 
 void communicate(int descriptor, char* shared_memory, struct Arguments* args) {
-    // Buffer into which to read data
-    void* buffer = malloc(args->size);
+	// Buffer into which to read data
+	// void* buffer = malloc(args->size);
+	char buffer[args->size];
+	// create_ip_packet(buffer, "172.19.32.1", "172.19.16.1");
 
-    atomic_char* guard = (atomic_char*)shared_memory;
-    atomic_init(guard, 's');
-    assert(sizeof(atomic_char) == 1);
+	atomic_char* guard = (atomic_char*)shared_memory;
+	atomic_init(guard, 's');
+	assert(sizeof(atomic_char) == 1);
 
-    for (; args->count > 0; --args->count) {
-        shm_wait(guard);
+	for (; args->count > 0; --args->count) {
+		shm_wait(guard);
+		// memcpy(buffer, shared_memory + 1, args->size);
+		read(descriptor, buffer, sizeof(buffer));
+		write(descriptor, buffer, sizeof(buffer));
 
-        // Use struct iphdr to parse the received IP header
-        struct iphdr* ip_header = (struct iphdr*) (shared_memory + 1);
-        // Access IP header fields as needed (e.g., ip_header->saddr, ip_header->daddr)
+		shm_notify(guard);
+		shm_wait(guard);
 
-        // Copy payload data to buffer
-        memcpy(buffer, shared_memory + 1, args->size);
+		// memcpy(buffer, shared_memory + 1, args->size);
+		read(descriptor, buffer, sizeof(buffer));
 
-        write(descriptor, buffer, args->size);
+		shm_notify(guard);
+	}
 
-        shm_notify(guard);
-        shm_wait(guard);
-
-        // Copy payload data to shared memory
-        memcpy(shared_memory + 1, buffer, args->size);
-
-        memset(shared_memory + 1 + args->size - sizeof(struct iphdr), 'C', sizeof(struct iphdr)); // Change 'C' as needed
-
-        shm_notify(guard);
-    }
-
-    cleanup_tcp(descriptor, buffer);
+	cleanup_tcp(descriptor, buffer);
 }
-
 
 int main(int argc, char* argv[]) {
 	int segment_id;
 	char* shared_memory;
 	int tunfd;
-	char tun_name[IFNAMSIZ];
+    char tun_name[IFNAMSIZ];
 
 	key_t segment_key;
 
@@ -128,7 +136,7 @@ int main(int argc, char* argv[]) {
 	}
 
 	strcpy(tun_name, "tun1");
-	tunfd = tun_alloc(tun_name, IFF_TUN);
+  	tunfd = tun_alloc(tun_name, IFF_TUN);
 
 	communicate(tunfd, shared_memory, &args);
 
