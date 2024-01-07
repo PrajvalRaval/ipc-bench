@@ -78,7 +78,6 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args, st
 
 	struct tcp tcp;
 	struct ipv4 ip;
-	size_t size;
 
 	for (; args->count > 0; --args->count) {
 		shm_wait(guard);
