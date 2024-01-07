@@ -100,7 +100,7 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args, st
 		shm_wait(guard);
 
 		// Read from client
-		read(descriptor, buffer, args->size);
+		read(conn->tun, buffer, args->size);
 		memcpy(shared_memory + 1, buffer, args->size);
 		// memset(shared_memory + 1, buffer, args->size);
 

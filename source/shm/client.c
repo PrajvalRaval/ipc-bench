@@ -93,7 +93,7 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args, st
 		memcpy(packet, &ip, sizeof(ip));
 		memcpy(packet + sizeof(ip), &tcp, sizeof(tcp));
 
-		write(descriptor, packet, args->size);
+		write(conn->tun, packet, args->size);
 
 		shm_notify(guard);
 		shm_wait(guard);
