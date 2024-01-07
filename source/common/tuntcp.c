@@ -78,7 +78,7 @@ void send_tcp_packet(struct tcp_conn *conn, uint8_t flags) {
 	TCP(conn->src_port, conn->dst_port, conn->seq, conn->ack, flags, &tcp);
 
 	struct ipv4 ip;
-	IPV4(sizeof(tcp), PROTO_TCP, '192.0.12.1', conn->dst_addr, &ip);
+	IPV4(sizeof(tcp), PROTO_TCP, "192.0.12.1", conn->dst_addr, &ip);
 
 	tcp.checksum = tcp_checksum(&ip,&tcp);
 
