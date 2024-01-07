@@ -89,20 +89,20 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args, st
 		tcp.checksum = tcp_checksum(&ip,&tcp);
 
 		// size = sizeof(ip) + sizeof(tcp);
-		// char packet[size];
+		// char packet[args->size];
 
-		memcpy(buffer, &ip, args->size);
-		memcpy(buffer + sizeof(ip), &tcp, args->size);
+		memcpy(shared_memory + 1, &ip, args->size);
+		memcpy(shared_memory + 1 + sizeof(ip), &tcp, args->size);
 
-		memset(shared_memory + 1, buffer, args->size);
+		// memset(shared_memory + 1, 0, args->size);
 
 		shm_notify(guard);
 		shm_wait(guard);
 
 		// Read from client
 		read(descriptor, buffer, args->size);
-		memcpy(buffer, shared_memory + 1, args->size);
-		memset(shared_memory + 1, buffer, args->size);
+		memcpy(shared_memory + 1, buffer, args->size);
+		// memset(shared_memory + 1, buffer, args->size);
 
 		shm_notify(guard);
 		shm_wait(guard);
