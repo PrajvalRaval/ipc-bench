@@ -5,5 +5,6 @@
 #include "common/benchmarks.h"
 #include "common/signals.h"
 #include "common/utility.h"
+#include "common/tuntcp.h"
 
 #endif /* IPC_BENCH_COMMON_H */

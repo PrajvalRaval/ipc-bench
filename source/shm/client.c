@@ -18,7 +18,7 @@
 
 #include "common/common.h"
 #include "common/sockets.h"
-#include "tuntcp.h"
+#include "common/tuntcp.h"
 
 int tun_alloc(char *dev, int flags) {
 
