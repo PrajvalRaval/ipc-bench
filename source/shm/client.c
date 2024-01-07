@@ -18,6 +18,7 @@
 
 #include "common/common.h"
 #include "common/sockets.h"
+#include "tuntcp.h"
 
 int tun_alloc(char *dev, int flags) {
 
@@ -67,7 +68,7 @@ void shm_notify(atomic_char* guard) {
 	atomic_store(guard, 's');
 }
 
-void communicate(int descriptor, char* shared_memory, struct Arguments* args) {
+void communicate(int descriptor, char* shared_memory, struct Arguments* args, struct tcp_conn *conn) {
 	// Buffer into which to read data
 	void* buffer = malloc(args->size);
 
@@ -119,7 +120,10 @@ int main(int argc, char* argv[]) {
 	strcpy(tun_name, "tun1");
   	tunfd = tun_alloc(tun_name, IFF_TUN);
 
-	communicate(tunfd, shared_memory, &args);
+	struct tcp_conn conn;
+	TCPConnection(tunfd, "192.0.3.1", "192.0.2.1", 80, &conn);
+
+	communicate(tunfd, shared_memory, &args, &conn);
 
 	cleanup(shared_memory);
 

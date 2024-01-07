@@ -11,5 +11,7 @@ add_executable(shm shm.c)
 ###########################################################
 
 target_link_libraries(shm-client ipc-bench-common)
+target_link_libraries(shm-client tuntcp)
 target_link_libraries(shm-server ipc-bench-common)
+target_link_libraries(shm-server tuntcp)
 target_link_libraries(shm ipc-bench-common)

@@ -17,6 +17,7 @@
 
 #include "common/common.h"
 #include "common/sockets.h"
+#include "tuntcp.h"
 
 int tun_alloc(char *dev, int flags) {
 
@@ -66,11 +67,15 @@ void shm_notify(atomic_char* guard) {
 	atomic_store(guard, 'c');
 }
 
-void communicate(int descriptor, char* shared_memory, struct Arguments* args) {
+void communicate(int descriptor, char* shared_memory, struct Arguments* args, struct tcp_conn *conn) {
 	struct Benchmarks bench;
 	int message;
 	void* buffer = malloc(args->size);
 	atomic_char* guard = (atomic_char*)shared_memory;
+
+	struct tcp tcp;
+	struct ipv4 ip;
+	size_t size;
 
 	// Wait for signal from client
 	shm_wait(guard);
@@ -79,7 +84,17 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args) {
 	for (message = 0; message < args->count; ++message) {
 		bench.single_start = now();
 
-		memset(shared_memory + 1, 'P', args->size);
+		TCP(conn->src_port, conn->dst_port, conn->seq, conn->ack, TCP_SYN, &tcp);
+		IPV4(sizeof(tcp), PROTO_TCP, "192.0.3.1", "192.0.2.1", &ip);
+		tcp.checksum = tcp_checksum(&ip,&tcp);
+
+		size = sizeof(ip) + sizeof(tcp);
+		char packet[size];
+
+		memcpy(packet, &ip, sizeof(ip));
+		memcpy(packet + sizeof(ip), &tcp, sizeof(tcp));
+
+		memset(shared_memory + 1, packet, args->size);
 
 		shm_notify(guard);
 		shm_wait(guard);
@@ -87,7 +102,7 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args) {
 		// Read from client
 		read(descriptor, buffer, args->size);
 		memcpy(buffer, shared_memory + 1, args->size);
-		memset(shared_memory + 1, 'S', args->size);
+		memset(shared_memory + 1, packet, args->size);
 
 		shm_notify(guard);
 		shm_wait(guard);
@@ -126,7 +141,10 @@ int main(int argc, char* argv[]) {
 	strcpy(tun_name, "tun0");
   	tunfd = tun_alloc(tun_name, IFF_TUN);
 
-	communicate(tunfd, shared_memory, &args);
+	struct tcp_conn conn;
+	TCPConnection(tunfd, "192.0.2.1", "192.0.3.1", 80, &conn);
+
+	communicate(tunfd, shared_memory, &args, &conn);
 	cleanup(segment_id, shared_memory);
 
 	return EXIT_SUCCESS;
