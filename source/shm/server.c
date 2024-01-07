@@ -73,8 +73,8 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args, st
 	void* buffer = malloc(args->size);
 	atomic_char* guard = (atomic_char*)shared_memory;
 
-	struct tcp tcp;
-	struct ipv4 ip;
+	// struct tcp tcp;
+	// struct ipv4 ip;
 	// size_t size;
 
 	// Wait for signal from client
@@ -84,15 +84,15 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args, st
 	for (message = 0; message < args->count; ++message) {
 		bench.single_start = now();
 
-		TCP(conn->src_port, conn->dst_port, conn->seq, conn->ack, TCP_SYN, &tcp);
-		IPV4(sizeof(tcp), PROTO_TCP, "192.0.3.1", "192.0.2.1", &ip);
-		tcp.checksum = tcp_checksum(&ip,&tcp);
+		// TCP(conn->src_port, conn->dst_port, conn->seq, conn->ack, TCP_SYN, &tcp);
+		// IPV4(sizeof(tcp), PROTO_TCP, "192.0.3.1", "192.0.2.1", &ip);
+		// tcp.checksum = tcp_checksum(&ip,&tcp);
 
 		// size = sizeof(ip) + sizeof(tcp);
 		// char packet[args->size];
 
-		memcpy(shared_memory + 1, &ip, args->size);
-		memcpy(shared_memory + 1 + sizeof(ip), &tcp, args->size);
+		// memcpy(shared_memory + 1, &ip, args->size);
+		// memcpy(shared_memory + 1 + sizeof(ip), &tcp, args->size);
 
 		// memset(shared_memory + 1, 0, args->size);
 

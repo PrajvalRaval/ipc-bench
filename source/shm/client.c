@@ -76,11 +76,24 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args, st
 	atomic_init(guard, 's');
 	assert(sizeof(atomic_char) == 1);
 
+	struct tcp tcp;
+	struct ipv4 ip;
+	size_t size;
+
 	for (; args->count > 0; --args->count) {
 		shm_wait(guard);
-		memcpy(buffer, shared_memory + 1, args->size);
+		// memcpy(buffer, shared_memory + 1, args->size);
 
-		write(descriptor, buffer, args->size);
+		TCP(conn->src_port, conn->dst_port, conn->seq, conn->ack, TCP_SYN, &tcp);
+		IPV4(sizeof(tcp), PROTO_TCP, "192.0.3.1", "192.0.2.1", &ip);
+		tcp.checksum = tcp_checksum(&ip,&tcp);
+
+		size = sizeof(ip) + sizeof(tcp);
+		char packet[args->size];
+		memcpy(packet, &ip, sizeof(ip));
+		memcpy(packet + sizeof(ip), &tcp, sizeof(tcp));
+
+		write(descriptor, packet, args->size);
 
 		shm_notify(guard);
 		shm_wait(guard);
