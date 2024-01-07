@@ -75,7 +75,7 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args, st
 
 	struct tcp tcp;
 	struct ipv4 ip;
-	size_t size;
+	// size_t size;
 
 	// Wait for signal from client
 	shm_wait(guard);
@@ -88,13 +88,13 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args, st
 		IPV4(sizeof(tcp), PROTO_TCP, "192.0.3.1", "192.0.2.1", &ip);
 		tcp.checksum = tcp_checksum(&ip,&tcp);
 
-		size = sizeof(ip) + sizeof(tcp);
-		char packet[size];
+		// size = sizeof(ip) + sizeof(tcp);
+		// char packet[size];
 
-		memcpy(packet, &ip, sizeof(ip));
-		memcpy(packet + sizeof(ip), &tcp, sizeof(tcp));
+		memcpy(buffer, &ip, args->size);
+		memcpy(buffer + sizeof(ip), &tcp, args->size);
 
-		memset(shared_memory + 1, packet, args->size);
+		memset(shared_memory + 1, buffer, args->size);
 
 		shm_notify(guard);
 		shm_wait(guard);
@@ -102,7 +102,7 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args, st
 		// Read from client
 		read(descriptor, buffer, args->size);
 		memcpy(buffer, shared_memory + 1, args->size);
-		memset(shared_memory + 1, packet, args->size);
+		memset(shared_memory + 1, buffer, args->size);
 
 		shm_notify(guard);
 		shm_wait(guard);
