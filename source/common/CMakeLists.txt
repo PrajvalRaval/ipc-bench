@@ -10,7 +10,7 @@ set(IPC_BENCH_COMMON_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/process.c
 	${CMAKE_CURRENT_SOURCE_DIR}/sockets.c
 	${CMAKE_CURRENT_SOURCE_DIR}/parent.c
-	${CMAKE_CURRENT_SOURCE_DIR}/tuntap.c
+	${CMAKE_CURRENT_SOURCE_DIR}/tuntcp.c
 )
 
 ###########################################################
