@@ -117,7 +117,7 @@ uint16_t tcp_checksum(struct ipv4 *ip, struct tcp *tcp) {
 void send_tcp_packet_data(struct tcp_conn *conn, uint8_t flags, int data_size)
 {
 	char data[data_size];
-	memset(data + 1, 'P', data_size);
+	// memset(data + 1, 'P', data_size);
 
 	struct tcp tcp;
 	TCP(conn->src_port, conn->dst_port, conn->seq, conn->ack, flags, &tcp);
@@ -158,6 +158,7 @@ uint16_t tcp_checksum_data(struct ipv4 *ip, struct tcp *tcp, char *data, int dat
 
 	return checksum(sum_data, size);
 }
+
 
 
 uint16_t checksum(void *data, size_t count) {
