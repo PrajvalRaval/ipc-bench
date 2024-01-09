@@ -47,6 +47,20 @@ void communicate(int descriptor,
 	char buffer[1024] = {0};
 	void* shm_buffer = malloc(args->size);
 
+	send_tcp_packet(conn, TCP_SYN);
+	conn->state = TCP_SYN_SENT;
+
+	read(descriptor, buffer, sizeof(buffer));
+
+	struct ipv4* ip = buf2ip(buffer);
+	struct tcp* tcp = buf2tcp(buffer, ip);
+
+	conn->seq = ntohl(tcp->ack);
+	conn->ack = ntohl(tcp->seq) + 1;
+
+	send_tcp_packet(conn, TCP_ACK);
+	conn->state = TCP_ESTABLISHED;
+
 
 	atomic_char* guard = (atomic_char*)shared_memory;
 	atomic_init(guard, 's');
@@ -56,23 +70,6 @@ void communicate(int descriptor,
 		shm_wait(guard);
 
 		memcpy(shm_buffer, shared_memory + 1, args->size);
-
-		send_tcp_packet(conn, TCP_SYN);
-		conn->state = TCP_SYN_SENT;
-
-		shm_notify(guard);
-		shm_wait(guard);
-
-		read(descriptor, buffer, sizeof(buffer));
-
-		struct ipv4* ip = buf2ip(buffer);
-		struct tcp* tcp = buf2tcp(buffer, ip);
-
-		conn->seq = ntohl(tcp->ack);
-		conn->ack = ntohl(tcp->seq) + 1;
-
-		send_tcp_packet(conn, TCP_ACK);
-		conn->state = TCP_ESTABLISHED;
 
 		send_tcp_packet_data(conn, TCP_PSH, args->size);
 

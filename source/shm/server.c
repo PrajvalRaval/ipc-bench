@@ -47,9 +47,22 @@ void communicate(int descriptor,
 	struct Benchmarks bench;
 	char buffer[1024] = {0};
 	int message;
-	atomic_char* guard = (atomic_char*)shared_memory;
 
 	void* shm_buffer = malloc(args->size);
+
+	read(descriptor, buffer, sizeof(buffer));
+
+	struct ipv4* ip = buf2ip(buffer);
+	struct tcp* tcp = buf2tcp(buffer, ip);
+
+	conn->seq = ntohl(tcp->ack);
+	conn->ack = ntohl(tcp->seq) + 1;
+
+	send_tcp_packet(conn, TCP_ACK);
+	send_tcp_packet(conn, TCP_SYN);
+	conn->state = TCP_ESTABLISHED;
+
+	atomic_char* guard = (atomic_char*)shared_memory;
 
 	// Wait for signal from client
 	shm_wait(guard);
@@ -63,33 +76,18 @@ void communicate(int descriptor,
 		shm_notify(guard);
 		shm_wait(guard);
 
-		read(descriptor, buffer, sizeof(buffer));
-
-		struct ipv4* ip = buf2ip(buffer);
-		struct tcp* tcp = buf2tcp(buffer, ip);
-
-		conn->seq = ntohl(tcp->ack);
-		conn->ack = ntohl(tcp->seq) + 1;
-
-		send_tcp_packet(conn, TCP_ACK);
-		send_tcp_packet(conn, TCP_SYN);
-		conn->state = TCP_ESTABLISHED;
-
-		shm_notify(guard);
-		shm_wait(guard);
-
 		read(descriptor, shm_buffer, sizeof(shm_buffer));
 
 		memcpy(shared_memory + 1, buffer, args->size);
-
-		// send_tcp_packet(conn, TCP_RST);
-		// conn->state = TCP_CLOSED;
 
 		shm_notify(guard);
 		shm_wait(guard);
 
 		benchmark(&bench);
 	}
+
+	send_tcp_packet(conn, TCP_RST);
+	conn->state = TCP_CLOSED;
 
 	evaluate(&bench, args);
 	cleanup_tcp(descriptor, shm_buffer);
