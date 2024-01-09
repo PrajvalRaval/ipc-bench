@@ -1,59 +1,32 @@
+#include <arpa/inet.h>
 #include <assert.h>
+#include <ctype.h>
+#include <fcntl.h>
+#include <linux/if.h>
+#include <linux/if_tun.h>
+#include <netdb.h>
+#include <netinet/in.h>
 #include <signal.h>
 #include <stdatomic.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/shm.h>
-#include <unistd.h>
-#include <arpa/inet.h>
-#include <fcntl.h>
-#include <netdb.h>
-#include <netinet/in.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <sys/ioctl.h>
-#include <linux/if.h>
-#include <linux/if_tun.h>
+#include <sys/shm.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <time.h>
+#include <unistd.h>
 
 #include "common/common.h"
 #include "common/sockets.h"
-
-int tun_alloc(char *dev, int flags) {
-
-  struct ifreq ifr;
-  int fd, err;
-  char *clonedev = "/dev/net/tun";
-
-   /* open the clone device */
-   if( (fd = open(clonedev, O_RDWR)) < 0 ) {
-     return fd;
-   }
-
-   /* preparation of the struct ifr, of type "struct ifreq" */
-   memset(&ifr, 0, sizeof(ifr));
-
-   ifr.ifr_flags = flags;   /* IFF_TUN or IFF_TAP, plus maybe IFF_NO_PI */
-
-   if (*dev) {
-     strncpy(ifr.ifr_name, dev, IFNAMSIZ);
-   }
-
-   /* try to create the device */
-   if( (err = ioctl(fd, TUNSETIFF, (void *) &ifr)) < 0 ) {
-     close(fd);
-     return err;
-   }
-
-  strcpy(dev, ifr.ifr_name);
-  return fd;
-}
+#include "tuntcp-client.h"
 
 void cleanup(char* shared_memory) {
 	shmdt(shared_memory);
 }
 
-void cleanup_tcp(int descriptor, void *buffer) {
+void cleanup_tcp(int descriptor, void* buffer) {
 	close(descriptor);
 	free(buffer);
 }
@@ -67,36 +40,55 @@ void shm_notify(atomic_char* guard) {
 	atomic_store(guard, 's');
 }
 
-void communicate(int descriptor, char* shared_memory, struct Arguments* args) {
+void communicate(int descriptor,
+								 char* shared_memory,
+								 struct Arguments* args,
+								 struct tcp_conn conn) {
 	// Buffer into which to read data
-	void* buffer = malloc(args->size);
+	// void* buffer = malloc(args->size);
 
 	atomic_char* guard = (atomic_char*)shared_memory;
 	atomic_init(guard, 's');
 	assert(sizeof(atomic_char) == 1);
+	char buffer[1024] = {0};
 
 	for (; args->count > 0; --args->count) {
 		shm_wait(guard);
-		memcpy(buffer, shared_memory + 1, args->size);
 
-		write(descriptor, buffer, strlen(buffer));
+		// Sending a SYN packet
+		send_tcp_packet(&conn, TCP_SYN);
+		conn.state = TCP_SYN_SENT;
 
-		shm_notify(guard);
-		shm_wait(guard);
+		read(descriptor, buffer, sizeof(buffer));
 
-		memcpy(buffer, shared_memory + 1, args->size);
+		struct ipv4* ip = buf2ip(buffer);
+		struct tcp* tcp = buf2tcp(buffer, ip);
+		int tcplen = ipdlen(ip);
 
-		shm_notify(guard);
+		conn.seq = ntohl(tcp->ack);
+		conn.ack = ntohl(tcp->seq) + 1;
+
+		// Sending an ACK packet
+		send_tcp_packet(&conn, TCP_ACK);
+		conn.state = TCP_ESTABLISHED;
+		// memcpy(buffer, shared_memory + 1, args->size);
+
+		// write(descriptor, buffer, strlen(buffer));
+
+		// shm_notify(guard);
+		// shm_wait(guard);
+
+		// memcpy(buffer, shared_memory + 1, args->size);
+
+		// shm_notify(guard);
 	}
 
-	cleanup_tcp(descriptor, buffer);
+	// cleanup_tcp(descriptor, buffer);
 }
 
 int main(int argc, char* argv[]) {
 	int segment_id;
 	char* shared_memory;
-	int tunfd;
-    char tun_name[IFNAMSIZ];
 
 	key_t segment_key;
 
@@ -116,10 +108,11 @@ int main(int argc, char* argv[]) {
 		throw("Could not attach segment");
 	}
 
-	strcpy(tun_name, "tun0");
-  	tunfd = tun_alloc(tun_name, IFF_TUN);
+	int tun = openTun("tun0");
+	struct tcp_conn conn;
+	TCPConnection(tun, "192.0.3.2", 80, &conn);
 
-	communicate(tunfd, shared_memory, &args);
+	communicate(tun, shared_memory, &args, conn);
 
 	cleanup(shared_memory);
 
