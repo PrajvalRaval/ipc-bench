@@ -52,7 +52,7 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args, st
 	// shm_wait(guard);
 	char buffer[1024] = {0};
 	// Sending a SYN packet
-	send_tcp_packet(&conn, TCP_SYN);
+	send_tcp_packet(conn, TCP_SYN);
 	conn->state = TCP_SYN_SENT;
 
 	read(descriptor, buffer, sizeof(buffer));
@@ -65,7 +65,7 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args, st
 	conn->ack = ntohl(tcp->seq) + 1;
 
 	// Sending an ACK packet
-	send_tcp_packet(&conn, TCP_ACK);
+	send_tcp_packet(conn, TCP_ACK);
 	conn->state = TCP_ESTABLISHED;
 	// memcpy(buffer, shared_memory + 1, args->size);
 

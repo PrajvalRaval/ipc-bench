@@ -53,8 +53,8 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args, st
 	conn->ack = ntohl(tcp->seq) + 1;
 
 	// Sending an ACK packet
-	send_tcp_packet(&conn, TCP_ACK);
-	send_tcp_packet(&conn, TCP_SYN);
+	send_tcp_packet(conn, TCP_ACK);
+	send_tcp_packet(conn, TCP_SYN);
 	conn->state = TCP_ESTABLISHED;
 
 	// struct Benchmarks bench;
