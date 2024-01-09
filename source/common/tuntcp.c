@@ -114,7 +114,7 @@ uint16_t tcp_checksum(struct ipv4 *ip, struct tcp *tcp) {
 }
 
 
-void send_tcp_packet_data(struct tcp_conn *conn, uint8_t flags, char* packet_data) {
+void send_tcp_packet_data(struct tcp_conn *conn, uint8_t flags, char* packet_data[1024]) {
 	struct tcp tcp;
 	TCP(conn->src_port, conn->dst_port, conn->seq, conn->ack, flags, &tcp);
 
@@ -132,7 +132,7 @@ void send_tcp_packet_data(struct tcp_conn *conn, uint8_t flags, char* packet_dat
 	write(conn->tun, packet, size);
 }
 
-uint16_t tcp_checksum_data(struct ipv4 *ip, struct tcp *tcp, char* packet_data) {
+uint16_t tcp_checksum_data(struct ipv4 *ip, struct tcp *tcp, char* packet_data[1024]) {
 	struct pseudoheader *ph = calloc(1, sizeof(struct pseudoheader));
 	ph->src = ip->src;
 	ph->dst = ip->dst;
