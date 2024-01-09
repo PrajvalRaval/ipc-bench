@@ -5,7 +5,6 @@
 #include "common/benchmarks.h"
 #include "common/signals.h"
 #include "common/utility.h"
-#include "common/tuntcp-server.h"
-#include "common/tuntcp-client.h"
+#include "common/tuntcp.h"
 
 #endif /* IPC_BENCH_COMMON_H */

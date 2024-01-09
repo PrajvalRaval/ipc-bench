@@ -8,14 +8,14 @@
 #include <sys/ioctl.h>
 #include <linux/if.h>
 #include <linux/if_tun.h>
-#include "tuntcp-server.h"
+#include "common/tuntcp.h"
 #include <time.h>
 #include <ctype.h>
 
 #define IFNAMSIZ 16
 #define PACKET_SIZE 1024
 
-void IPV4(size_t len_contents, uint8_t protocol, char *daddr, struct ipv4 *ip)
+void IPV4(size_t len_contents, uint8_t protocol,char *saddr, char *daddr, struct ipv4 *ip)
 {
 
 	ip->version_ihl = 4 << 4 | 5;
@@ -26,7 +26,7 @@ void IPV4(size_t len_contents, uint8_t protocol, char *daddr, struct ipv4 *ip)
 	ip->ttl = 64;
 	ip->proto = protocol;
 	ip->checksum = 0;
-	inet_pton(AF_INET, "192.0.3.2", &(ip->src));
+	inet_pton(AF_INET, saddr, &(ip->src));
 	inet_pton(AF_INET, daddr, &(ip->dst));
 
 	ip->checksum = checksum(ip, sizeof(*ip));
@@ -58,7 +58,7 @@ void TCP(uint16_t sport, uint16_t dport, uint32_t seq, uint32_t ack, uint8_t fla
 	tcp->urp = 0;
 }
 
-void TCPConnection(int tun, char *addr, uint16_t port, struct tcp_conn *conn)
+void TCPConnection(int tun, char *saddr, char *daddr, uint16_t port, struct tcp_conn *conn)
 {
 
 	srand(time(NULL));
@@ -66,10 +66,10 @@ void TCPConnection(int tun, char *addr, uint16_t port, struct tcp_conn *conn)
 	conn->tun = tun;
 	conn->state = TCP_CLOSED;
 
-	inet_pton(AF_INET, "192.0.3.2", &(conn->src_addr));
+	inet_pton(AF_INET, saddr, &(conn->src_addr));
 	conn->src_port = rand() % INT16_MAX;
 
-	conn->dst_addr = addr;
+	conn->dst_addr = daddr;
 	conn->dst_port = port;
 
 	conn->seq = rand();
@@ -84,7 +84,7 @@ void send_tcp_packet(struct tcp_conn *conn, uint8_t flags)
 	TCP(conn->src_port, conn->dst_port, conn->seq, conn->ack, flags, &tcp);
 
 	struct ipv4 ip;
-	IPV4(sizeof(tcp) + PACKET_SIZE, PROTO_TCP, conn->dst_addr, &ip);
+	IPV4(sizeof(tcp) + PACKET_SIZE, PROTO_TCP, conn->src_addr, conn->dst_addr, &ip);
 
 	tcp.checksum = tcp_checksum(&ip, &tcp, data);
 

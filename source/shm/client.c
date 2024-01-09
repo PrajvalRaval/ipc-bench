@@ -20,7 +20,7 @@
 
 #include "common/common.h"
 #include "common/sockets.h"
-#include "tuntcp-client.h"
+#include "common/tuntcp.h"
 
 void cleanup(char* shared_memory) {
 	shmdt(shared_memory);
@@ -110,7 +110,7 @@ int main(int argc, char* argv[]) {
 
 	int tun = openTun("tun0");
 	struct tcp_conn conn;
-	TCPConnection(tun, "192.0.3.2", 80, &conn);
+	TCPConnection(tun, "192.0.2.2", "192.0.3.2", 80, &conn);
 
 	communicate(tun, shared_memory, &args, conn);
 

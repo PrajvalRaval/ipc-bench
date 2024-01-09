@@ -19,7 +19,7 @@
 
 #include "common/common.h"
 #include "common/sockets.h"
-#include "common/tuntcp-server.h"
+#include "common/tuntcp.h"
 
 void cleanup_tcp(int descriptor, void* buffer) {
 	close(descriptor);
@@ -115,7 +115,7 @@ int main(int argc, char* argv[]) {
 
 	int tun = openTun("tun1");
 	struct tcp_conn conn;
-	TCPConnection(tun, "192.0.2.2", 80, &conn);
+	TCPConnection(tun, "192.0.3.2", "192.0.2.2", 80, &conn);
 
 	communicate(tun, shared_memory, &args, conn);
 	cleanup(segment_id, shared_memory);

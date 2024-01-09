@@ -94,10 +94,10 @@ struct tcp_conn
 	uint32_t ack;
 };
 
-void IPV4(size_t len_contents, uint8_t protocol, char *daddr, struct ipv4 *ip);
+void IPV4(size_t len_contents, uint8_t protocol,char *saddr, char *daddr, struct ipv4 *ip);
 void ICMPEcho(uint16_t seq, struct icmpecho *echo);
 void TCP(uint16_t sport, uint16_t dport, uint32_t seq, uint32_t ack, uint8_t flags, struct tcp *tcp);
-void TCPConnection(int tunfd, char *addr, uint16_t port, struct tcp_conn *conn);
+void TCPConnection(int tun, char *saddr, char *daddr, uint16_t port, struct tcp_conn *conn);
 void send_tcp_packet(struct tcp_conn *conn, uint8_t flags);
 
 uint16_t checksum(void *data, size_t count);
