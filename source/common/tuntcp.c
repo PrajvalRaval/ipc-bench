@@ -121,7 +121,7 @@ void send_tcp_packet_data(struct tcp_conn *conn, uint8_t flags, char *packet_dat
 	struct ipv4 ip;
 	IPV4(sizeof(tcp)  + sizeof(packet_data), PROTO_TCP, conn->src_addr, conn->dst_addr, &ip);
 
-	tcp.checksum = tcp_checksum_data(&ip, &tcp, &packet_data);
+	tcp.checksum = tcp_checksum_data(&ip, &tcp, packet_data);
 
 	size_t size = sizeof(ip) + sizeof(tcp) + sizeof(packet_data);
 	char packet[size];
