@@ -44,23 +44,7 @@ void communicate(int descriptor,
 								 char* shared_memory,
 								 struct Arguments* args,
 								 struct tcp_conn* conn) {
-	char buffer[1024] = {0};
 	void* shm_buffer = malloc(args->size);
-
-	send_tcp_packet(conn, TCP_SYN);
-	conn->state = TCP_SYN_SENT;
-
-	read(descriptor, buffer, sizeof(buffer));
-
-	struct ipv4* ip = buf2ip(buffer);
-	struct tcp* tcp = buf2tcp(buffer, ip);
-
-	conn->seq = ntohl(tcp->ack);
-	conn->ack = ntohl(tcp->seq) + 1;
-
-	send_tcp_packet(conn, TCP_ACK);
-	conn->state = TCP_ESTABLISHED;
-
 
 	atomic_char* guard = (atomic_char*)shared_memory;
 	atomic_init(guard, 's');
@@ -109,6 +93,22 @@ int main(int argc, char* argv[]) {
 	int tun = openTun("tun0");
 	struct tcp_conn conn;
 	TCPConnection(tun, "192.0.2.2", "192.0.3.2", 80, &conn);
+
+	char buffer[1024] = {0};
+
+	send_tcp_packet(&conn, TCP_SYN);
+	conn.state = TCP_SYN_SENT;
+
+	read(tun, buffer, sizeof(buffer));
+
+	struct ipv4* ip = buf2ip(buffer);
+	struct tcp* tcp = buf2tcp(buffer, ip);
+
+	conn.state = ntohl(tcp->ack);
+	conn.state = ntohl(tcp->seq) + 1;
+
+	send_tcp_packet(&conn, TCP_ACK);
+	conn.state = TCP_ESTABLISHED;
 
 	communicate(tun, shared_memory, &args, &conn);
 
