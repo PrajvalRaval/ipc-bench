@@ -40,13 +40,9 @@ void shm_notify(atomic_char* guard) {
 	atomic_store(guard, 's');
 }
 
-void communicate(int descriptor, char* shared_memory, struct Arguments* args) {
+void communicate(int descriptor, char* shared_memory, struct Arguments* args, struct tcp_conn *conn) {
 	// Buffer into which to read data
 	// void* buffer = malloc(args->size);
-
-	struct tcp_conn conn;
-	TCPConnection(descriptor, "192.0.2.2", "192.0.3.2", 80, &conn);
-	char buffer[1024] = {0};
 
 	// atomic_char* guard = (atomic_char*)shared_memory;
 	// atomic_init(guard, 's');
@@ -54,10 +50,10 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args) {
 
 	// for (; args->count > 0; --args->count) {
 	// shm_wait(guard);
-
+	char buffer[1024] = {0};
 	// Sending a SYN packet
 	send_tcp_packet(&conn, TCP_SYN);
-	conn.state = TCP_SYN_SENT;
+	conn->state = TCP_SYN_SENT;
 
 	read(descriptor, buffer, sizeof(buffer));
 
@@ -65,12 +61,12 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args) {
 	struct tcp* tcp = buf2tcp(buffer, ip);
 	// int tcplen = ipdlen(ip);
 
-	conn.seq = ntohl(tcp->ack);
-	conn.ack = ntohl(tcp->seq) + 1;
+	conn->seq = ntohl(tcp->ack);
+	conn->ack = ntohl(tcp->seq) + 1;
 
 	// Sending an ACK packet
 	send_tcp_packet(&conn, TCP_ACK);
-	conn.state = TCP_ESTABLISHED;
+	conn->state = TCP_ESTABLISHED;
 	// memcpy(buffer, shared_memory + 1, args->size);
 
 	// write(descriptor, buffer, strlen(buffer));
@@ -109,7 +105,10 @@ int main(int argc, char* argv[]) {
 	}
 
 	int tun = openTun("tun0");
-	communicate(tun, shared_memory, &args);
+	struct tcp_conn conn;
+	TCPConnection(tun, "192.0.2.2", "192.0.3.2", 80, &conn);
+
+	communicate(tun, shared_memory, &args, &conn);
 	cleanup(shared_memory);
 
 	return EXIT_SUCCESS;
