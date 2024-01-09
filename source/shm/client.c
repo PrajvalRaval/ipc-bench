@@ -83,26 +83,26 @@ void shm_notify(atomic_char* guard) {
 // }
 
 int main(int argc, char* argv[]) {
-	int segment_id;
-	char* shared_memory;
+	// int segment_id;
+	// char* shared_memory;
 
-	key_t segment_key;
+	// key_t segment_key;
 
-	struct Arguments args;
-	parse_arguments(&args, argc, argv);
+	// struct Arguments args;
+	// parse_arguments(&args, argc, argv);
 
-	segment_key = generate_key("shm");
-	segment_id = shmget(segment_key, 1 + args.size, IPC_CREAT | 0666);
+	// segment_key = generate_key("shm");
+	// segment_id = shmget(segment_key, 1 + args.size, IPC_CREAT | 0666);
 
-	if (segment_id < 0) {
-		throw("Could not get segment");
-	}
+	// if (segment_id < 0) {
+	// 	throw("Could not get segment");
+	// }
 
-	shared_memory = (char*)shmat(segment_id, NULL, 0);
+	// shared_memory = (char*)shmat(segment_id, NULL, 0);
 
-	if (shared_memory < (char*)0) {
-		throw("Could not attach segment");
-	}
+	// if (shared_memory < (char*)0) {
+	// 	throw("Could not attach segment");
+	// }
 
 	int tun = openTun("tun0");
 	struct tcp_conn conn;
@@ -127,7 +127,7 @@ int main(int argc, char* argv[]) {
 	conn.state = TCP_ESTABLISHED;
 
 	// communicate(tun, shared_memory, &args, &conn);
-	cleanup(shared_memory);
+	// cleanup(shared_memory);
 
-	return EXIT_SUCCESS;
+	return 0;
 }

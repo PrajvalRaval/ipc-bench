@@ -95,26 +95,26 @@ void shm_notify(atomic_char* guard) {
 // }
 
 int main(int argc, char* argv[]) {
-	int segment_id;
-	char* shared_memory;
+	// int segment_id;
+	// char* shared_memory;
 
-	key_t segment_key;
+	// key_t segment_key;
 
-	struct Arguments args;
-	parse_arguments(&args, argc, argv);
+	// struct Arguments args;
+	// parse_arguments(&args, argc, argv);
 
-	segment_key = generate_key("shm");
-	segment_id = shmget(segment_key, 1 + args.size, IPC_CREAT | 0666);
+	// segment_key = generate_key("shm");
+	// segment_id = shmget(segment_key, 1 + args.size, IPC_CREAT | 0666);
 
-	if (segment_id < 0) {
-		throw("Error allocating segment");
-	}
+	// if (segment_id < 0) {
+	// 	throw("Error allocating segment");
+	// }
 
-	shared_memory = (char*)shmat(segment_id, NULL, 0);
+	// shared_memory = (char*)shmat(segment_id, NULL, 0);
 
-	if (shared_memory == (char*)-1) {
-		throw("Error attaching segment");
-	}
+	// if (shared_memory == (char*)-1) {
+	// 	throw("Error attaching segment");
+	// }
 
 	int tun = openTun("tun1");
 	struct tcp_conn conn;
@@ -136,7 +136,7 @@ int main(int argc, char* argv[]) {
 	conn.state = TCP_ESTABLISHED;
 
 	// communicate(tun, shared_memory, &args, &conn);
-	cleanup(segment_id, shared_memory);
+	// cleanup(segment_id, shared_memory);
 
-	return EXIT_SUCCESS;
+	return 0;
 }
