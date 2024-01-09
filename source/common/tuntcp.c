@@ -66,7 +66,7 @@ void TCPConnection(int tun, char *saddr, char *daddr, uint16_t port, struct tcp_
 	conn->tun = tun;
 	conn->state = TCP_CLOSED;
 
-	inet_pton(AF_INET, saddr, &(conn->src_addr));
+	conn->src_addr = saddr;
 	conn->src_port = rand() % INT16_MAX;
 
 	conn->dst_addr = daddr;
