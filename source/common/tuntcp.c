@@ -114,10 +114,10 @@ uint16_t tcp_checksum(struct ipv4 *ip, struct tcp *tcp) {
 }
 
 
-void send_tcp_packet_data(struct tcp_conn *conn, uint8_t flags, int data_size)
+void send_tcp_packet_data(struct tcp_conn *conn, uint8_t flags, int data_size, char* shared_memory)
 {
-	char data[data_size];
-	memset(data + 1, 'P', data_size);
+	void* data = malloc(data_size);
+	memcpy(data, shared_memory, data_size);
 
 	struct tcp tcp;
 	TCP(conn->src_port, conn->dst_port, conn->seq, conn->ack, flags, &tcp);
@@ -134,10 +134,11 @@ void send_tcp_packet_data(struct tcp_conn *conn, uint8_t flags, int data_size)
 	memcpy(packet + sizeof(ip) + sizeof(tcp), &data, sizeof(data));
 
 	write(conn->tun, packet, size);
+	free(data);
 }
 
 
-uint16_t tcp_checksum_data(struct ipv4 *ip, struct tcp *tcp, char *data, int data_size)
+uint16_t tcp_checksum_data(struct ipv4 *ip, struct tcp *tcp, void* data, int data_size)
 {
 	struct pseudoheader *ph = calloc(1, sizeof(struct pseudoheader));
 	ph->src = ip->src;

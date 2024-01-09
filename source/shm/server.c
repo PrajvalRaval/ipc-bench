@@ -45,7 +45,8 @@ void communicate(int descriptor,
 								 struct Arguments* args,
 								 struct tcp_conn* conn) {
 	struct Benchmarks bench;
-	char buffer[1024] = {0};
+	char tcp_buffer[1024] = {0};
+	void* dummy_data = malloc(args->size);
 	int message;
 	atomic_char* guard = (atomic_char*)shared_memory;
 
@@ -55,14 +56,15 @@ void communicate(int descriptor,
 
 	for (message = 0; message < args->count; ++message) {
 		bench.single_start = now();
+		memset(shared_memory + 1, 'P', args->size);
 
 		shm_notify(guard);
 		shm_wait(guard);
 
-		read(descriptor, buffer, sizeof(buffer));
+		read(descriptor, tcp_buffer, sizeof(tcp_buffer));
 
-		struct ipv4* ip = buf2ip(buffer);
-		struct tcp* tcp = buf2tcp(buffer, ip);
+		struct ipv4* ip = buf2ip(tcp_buffer);
+		struct tcp* tcp = buf2tcp(tcp_buffer, ip);
 
 		conn->seq = ntohl(tcp->ack);
 		conn->ack = ntohl(tcp->seq) + 1;
@@ -74,6 +76,12 @@ void communicate(int descriptor,
 		shm_notify(guard);
 		shm_wait(guard);
 
+		read(descriptor, dummy_data, args->size);
+		memcpy(shared_memory, dummy_data, args->size);
+
+		shm_notify(guard);
+		shm_wait(guard);
+
 		send_tcp_packet(conn, TCP_RST);
 		conn->state = TCP_CLOSED;
 
@@ -81,7 +89,7 @@ void communicate(int descriptor,
 	}
 
 	evaluate(&bench, args);
-	// cleanup_tcp(descriptor, buffer);
+	cleanup_tcp(descriptor, dummy_data);
 }
 
 int main(int argc, char* argv[]) {
