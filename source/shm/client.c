@@ -44,8 +44,6 @@ void communicate(int descriptor,
 								 char* shared_memory,
 								 struct Arguments* args,
 								 struct tcp_conn* conn) {
-	// Buffer into which to read data
-	// void* buffer = malloc(args->size);
 	char buffer[1024] = {0};
 
 	atomic_char* guard = (atomic_char*)shared_memory;

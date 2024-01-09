@@ -46,9 +46,7 @@ void communicate(int descriptor,
 								 struct tcp_conn* conn) {
 	struct Benchmarks bench;
 	char buffer[1024] = {0};
-
 	int message;
-	// void* buffer = malloc(args->size);
 	atomic_char* guard = (atomic_char*)shared_memory;
 
 	// Wait for signal from client
@@ -65,7 +63,6 @@ void communicate(int descriptor,
 
 		struct ipv4* ip = buf2ip(buffer);
 		struct tcp* tcp = buf2tcp(buffer, ip);
-		// int tcplen = ipdlen(ip);
 
 		conn->seq = ntohl(tcp->ack);
 		conn->ack = ntohl(tcp->seq) + 1;
@@ -76,6 +73,9 @@ void communicate(int descriptor,
 
 		shm_notify(guard);
 		shm_wait(guard);
+
+		send_tcp_packet(&conn, TCP_RST);
+		conn->state = TCP_CLOSED;
 
 		benchmark(&bench);
 	}
