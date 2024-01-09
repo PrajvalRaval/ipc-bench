@@ -1,39 +1,112 @@
+#include <arpa/inet.h>
+#include <assert.h>
+#include <ctype.h>
+#include <fcntl.h>
+#include <linux/if.h>
+#include <linux/if_tun.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <signal.h>
+#include <stdatomic.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <arpa/inet.h>
-#include <stdio.h>
+#include <sys/ioctl.h>
+#include <sys/shm.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <time.h>
-#include <ctype.h>
+#include <unistd.h>
+
+#include "common/common.h"
+#include "common/sockets.h"
 #include "common/tuntcp.h"
 
-int main(void)
-{
+void cleanup(char* shared_memory) {
+	shmdt(shared_memory);
+}
+
+void cleanup_tcp(int descriptor, void* buffer) {
+	close(descriptor);
+	free(buffer);
+}
+
+void shm_wait(atomic_char* guard) {
+	while (atomic_load(guard) != 'c')
+		;
+}
+
+void shm_notify(atomic_char* guard) {
+	atomic_store(guard, 's');
+}
+
+void communicate(int descriptor,
+								 char* shared_memory,
+								 struct Arguments* args,
+								 struct tcp_conn* conn) {
+	// Buffer into which to read data
+	// void* buffer = malloc(args->size);
+	char buffer[1024] = {0};
+
+	atomic_char* guard = (atomic_char*)shared_memory;
+	atomic_init(guard, 's');
+	assert(sizeof(atomic_char) == 1);
+
+	for (; args->count > 0; --args->count) {
+		shm_wait(guard);
+
+		send_tcp_packet(conn, TCP_SYN);
+		conn->state = TCP_SYN_SENT;
+
+		shm_notify(guard);
+		shm_wait(guard);
+
+		read(descriptor, buffer, sizeof(buffer));
+
+		struct ipv4* ip = buf2ip(buffer);
+		struct tcp* tcp = buf2tcp(buffer, ip);
+
+		conn->seq = ntohl(tcp->ack);
+		conn->ack = ntohl(tcp->seq) + 1;
+
+		send_tcp_packet(conn, TCP_ACK);
+		conn->state = TCP_ESTABLISHED;
+
+		shm_notify(guard);
+	}
+
+	// cleanup_tcp(descriptor, buffer);
+}
+
+int main(int argc, char* argv[]) {
+	int segment_id;
+	char* shared_memory;
+
+	key_t segment_key;
+
+	struct Arguments args;
+	parse_arguments(&args, argc, argv);
+
+	segment_key = generate_key("shm");
+	segment_id = shmget(segment_key, 1 + args.size, IPC_CREAT | 0666);
+
+	if (segment_id < 0) {
+		throw("Could not get segment");
+	}
+
+	shared_memory = (char*)shmat(segment_id, NULL, 0);
+
+	if (shared_memory < (char*)0) {
+		throw("Could not attach segment");
+	}
 
 	int tun = openTun("tun0");
 	struct tcp_conn conn;
-	TCPConnection(tun,"192.0.2.2", "192.0.3.2", 80, &conn);
-	char buffer[1024] = {0};
+	TCPConnection(tun, "192.0.2.2", "192.0.3.2", 80, &conn);
 
-	// Sending a SYN packet
-	send_tcp_packet(&conn, TCP_SYN);
-	conn.state = TCP_SYN_SENT;
+	communicate(tun, shared_memory, &args, &conn);
 
-	read(tun, buffer, sizeof(buffer));
+	cleanup(shared_memory);
 
-	struct ipv4 *ip = buf2ip(buffer);
-	struct tcp *tcp = buf2tcp(buffer, ip);
-	// int tcplen = ipdlen(ip);
-
-	conn.seq = ntohl(tcp->ack);
-	conn.ack = ntohl(tcp->seq) + 1;
-
-	// Sending an ACK packet
-	send_tcp_packet(&conn, TCP_ACK);
-	conn.state = TCP_ESTABLISHED;
-
-	// Sending a RST packet
-	// send_tcp_packet(&conn, TCP_RST);
-	// conn.state = TCP_CLOSED;
-	return 0;
+	return EXIT_SUCCESS;
 }
