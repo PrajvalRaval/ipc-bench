@@ -55,6 +55,7 @@ void communicate(int descriptor,
 
 	for (message = 0; message < args->count; ++message) {
 		bench.single_start = now();
+		memset(shared_memory + 1, '*', args->size);
 
 		shm_notify(guard);
 		shm_wait(guard);
