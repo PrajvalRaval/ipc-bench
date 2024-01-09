@@ -144,14 +144,14 @@ uint16_t tcp_checksum_data(struct ipv4 *ip, struct tcp *tcp, char *data, int dat
 	ph->dst = ip->dst;
 	ph->proto = ip->proto;
 	ph->tcp_len = htons(ntohs(ip->len) - sizeof(*ip));
-	size_t size = sizeof(*ph) + sizeof(*tcp) + sizeof(*data);
+	size_t size = sizeof(*ph) + sizeof(*tcp) + data_size;
 
 	char sum_data[size];
 	memset(sum_data, 0, size);
 
 	to_bytes(ph, sum_data, sizeof(*ph));
 	to_bytes(tcp, sum_data + sizeof(*ph), sizeof(*tcp));
-	to_bytes(data, sum_data + sizeof(*ph) + sizeof(*tcp), sizeof(*data));
+	to_bytes(data, sum_data + sizeof(*ph) + sizeof(*tcp), data_size);
 
 	free(ph);
 
