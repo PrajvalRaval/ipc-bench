@@ -63,7 +63,7 @@ void communicate(int descriptor,
 
 		struct ipv4* ip = buf2ip(buffer);
 		struct tcp* tcp = buf2tcp(buffer, ip);
-		int tcplen = ipdlen(ip);
+		// int tcplen = ipdlen(ip);
 
 		conn.seq = ntohl(tcp->ack);
 		conn.ack = ntohl(tcp->seq) + 1;
