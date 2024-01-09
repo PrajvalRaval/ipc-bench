@@ -43,22 +43,8 @@ void shm_notify(atomic_char* guard) {
 void communicate(int descriptor, char* shared_memory, struct Arguments* args) {
 	struct tcp_conn conn;
 	TCPConnection(descriptor, "192.0.3.2", "192.0.2.2", 80, &conn);
+
 	char buffer[1024] = {0};
-
-	struct Benchmarks bench;
-	// int message;
-	// void* buffer = malloc(args->size);
-	// atomic_char* guard = (atomic_char*)shared_memory;
-
-	// Wait for signal from client
-	// shm_wait(guard);
-	setup_benchmarks(&bench);
-
-	// for (message = 0; message < args->count; ++message) {
-	bench.single_start = now();
-
-	// shm_notify(guard);
-	// shm_wait(guard);
 
 	read(descriptor, buffer, sizeof(buffer));
 
@@ -74,6 +60,23 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args) {
 	send_tcp_packet(&conn, TCP_SYN);
 	conn.state = TCP_ESTABLISHED;
 
+	// struct Benchmarks bench;
+	// int message;
+	// void* buffer = malloc(args->size);
+	// atomic_char* guard = (atomic_char*)shared_memory;
+
+	// Wait for signal from client
+	// shm_wait(guard);
+	// setup_benchmarks(&bench);
+
+	// for (message = 0; message < args->count; ++message) {
+	// bench.single_start = now();
+
+	// shm_notify(guard);
+	// shm_wait(guard);
+
+	
+
 	// memset(shared_memory + 1, 'P', args->size);
 
 	// shm_notify(guard);
@@ -87,10 +90,10 @@ void communicate(int descriptor, char* shared_memory, struct Arguments* args) {
 	// shm_notify(guard);
 	// shm_wait(guard);
 
-	benchmark(&bench);
+	// benchmark(&bench);
 	// }
 
-	evaluate(&bench, args);
+	// evaluate(&bench, args);
 	// cleanup_tcp(descriptor, buffer);
 }
 
