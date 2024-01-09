@@ -46,12 +46,12 @@ void benchmark(Benchmarks* bench) {
 void evaluate(Benchmarks* bench, Arguments* args) {
 	assert(args->count > 0);
 	const bench_t total_time = now() - bench->total_start;
-	const double average = ((double)bench->sum) / args->count;
+	// const double average = ((double)bench->sum) / args->count;
 
-	double sigma = bench->squared_sum / args->count;
-	sigma = sqrt(sigma - (average * average));
+	// double sigma = bench->squared_sum / args->count;
+	// sigma = sqrt(sigma - (average * average));
 
-	int messageRate = (int)(args->count / (total_time / 1e9));
+	// int messageRate = (int)(args->count / (total_time / 1e9));
 
 	printf("\n============ RESULTS ================\n");
 	printf("Message size:       %d\n", args->size);
