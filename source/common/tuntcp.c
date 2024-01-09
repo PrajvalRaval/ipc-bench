@@ -138,6 +138,7 @@ void send_tcp_packet_data(struct tcp_conn *conn, uint8_t flags, int data_size, c
 	memcpy(packet + sizeof(ip) + sizeof(tcp), &data, sizeof(data));
 
 	write(conn->tun, packet, size);
+	free(data);
 }
 
 uint16_t tcp_checksum_data(struct ipv4 *ip,
