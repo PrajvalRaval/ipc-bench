@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <ctype.h>
-#include "tuntcp.h"
+#include "common/tuntcp.h"
 
 int main(void)
 {
