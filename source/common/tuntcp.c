@@ -145,7 +145,7 @@ uint16_t tcp_checksum_data(struct ipv4 *ip, struct tcp *tcp, char packet_data) {
 
 	to_bytes(ph, sum_data, sizeof(*ph));
 	to_bytes(tcp, sum_data + sizeof(*ph), sizeof(*tcp));
-	to_bytes(packet_data, sum_data + sizeof(*ph) + sizeof(*tcp), sizeof(packet_data));
+	to_bytes(&packet_data, sum_data + sizeof(*ph) + sizeof(*tcp), sizeof(packet_data));
 
 	free(ph);
 
