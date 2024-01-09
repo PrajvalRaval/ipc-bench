@@ -74,7 +74,7 @@ void communicate(int descriptor,
 		shm_notify(guard);
 		shm_wait(guard);
 
-		send_tcp_packet(&conn, TCP_RST);
+		send_tcp_packet(conn, TCP_RST);
 		conn->state = TCP_CLOSED;
 
 		benchmark(&bench);
