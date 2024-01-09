@@ -1,19 +1,19 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include <arpa/inet.h>
-#include <stdint.h>
-#include <unistd.h>
+#include <ctype.h>
 #include <fcntl.h>
-#include <string.h>
-#include <sys/ioctl.h>
 #include <linux/if.h>
 #include <linux/if_tun.h>
-#include "common/tuntcp.h"
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/ioctl.h>
 #include <time.h>
-#include <ctype.h>
+#include <unistd.h>
+
+#include "common/tuntcp.h"
 
 #define IFNAMSIZ 16
-#define PACKET_SIZE 1024
 
 void IPV4(size_t len_contents, uint8_t protocol,char *saddr, char *daddr, struct ipv4 *ip)
 {
@@ -32,9 +32,7 @@ void IPV4(size_t len_contents, uint8_t protocol,char *saddr, char *daddr, struct
 	ip->checksum = checksum(ip, sizeof(*ip));
 }
 
-void ICMPEcho(uint16_t seq, struct icmpecho *echo)
-{
-
+void ICMPEcho(uint16_t seq, struct icmpecho *echo) {
 	echo->type = 8;
 	echo->code = 0;
 	echo->checksum = 0;
@@ -44,9 +42,12 @@ void ICMPEcho(uint16_t seq, struct icmpecho *echo)
 	echo->checksum = checksum(echo, sizeof(*echo));
 }
 
-void TCP(uint16_t sport, uint16_t dport, uint32_t seq, uint32_t ack, uint8_t flags, struct tcp *tcp)
-{
-
+void TCP(uint16_t sport,
+				 uint16_t dport,
+				 uint32_t seq,
+				 uint32_t ack,
+				 uint8_t flags,
+				 struct tcp *tcp) {
 	tcp->sport = htons(sport);
 	tcp->dport = htons(dport);
 	tcp->seq = htonl(seq);
@@ -76,98 +77,81 @@ void TCPConnection(int tun, char *saddr, char *daddr, uint16_t port, struct tcp_
 	conn->ack = 0;
 }
 
-void send_tcp_packet(struct tcp_conn *conn, uint8_t flags)
-{
-	char data[PACKET_SIZE];
-
+void send_tcp_packet(struct tcp_conn *conn, uint8_t flags) {
 	struct tcp tcp;
 	TCP(conn->src_port, conn->dst_port, conn->seq, conn->ack, flags, &tcp);
 
 	struct ipv4 ip;
-	IPV4(sizeof(tcp) + PACKET_SIZE, PROTO_TCP, conn->src_addr, conn->dst_addr, &ip);
+	IPV4(sizeof(tcp), PROTO_TCP, conn->src_addr, conn->dst_addr, &ip);
 
-	tcp.checksum = tcp_checksum(&ip, &tcp, data);
+	tcp.checksum = tcp_checksum(&ip, &tcp);
 
-	size_t size = sizeof(ip) + sizeof(tcp) + PACKET_SIZE;
+	size_t size = sizeof(ip) + sizeof(tcp);
 	char packet[size];
 	memcpy(packet, &ip, sizeof(ip));
 	memcpy(packet + sizeof(ip), &tcp, sizeof(tcp));
-	memcpy(packet + sizeof(ip) + sizeof(tcp), &data, PACKET_SIZE);
 
 	write(conn->tun, packet, size);
 }
 
-uint16_t tcp_checksum(struct ipv4 *ip, struct tcp *tcp, char *data)
-{
+uint16_t tcp_checksum(struct ipv4 *ip, struct tcp *tcp) {
 	struct pseudoheader *ph = calloc(1, sizeof(struct pseudoheader));
 	ph->src = ip->src;
 	ph->dst = ip->dst;
 	ph->proto = ip->proto;
 	ph->tcp_len = htons(ntohs(ip->len) - sizeof(*ip));
-	size_t size = sizeof(*ph) + sizeof(*tcp) + PACKET_SIZE;
+	size_t size = sizeof(*ph) + sizeof(*tcp);
 
 	char sum_data[size];
 	memset(sum_data, 0, size);
 
 	to_bytes(ph, sum_data, sizeof(*ph));
 	to_bytes(tcp, sum_data + sizeof(*ph), sizeof(*tcp));
-	to_bytes(data, sum_data + sizeof(*ph) + sizeof(*tcp), PACKET_SIZE);
 
 	free(ph);
 
 	return checksum(sum_data, size);
 }
 
-uint16_t checksum(void *data, size_t count)
-{
-
+uint16_t checksum(void *data, size_t count) {
 	register uint32_t sum = 0;
 	uint16_t *p = data;
 
-	while (count > 1)
-	{
+	while (count > 1) {
 		sum += *p++;
 		count -= 2;
 	}
 
-	if (count > 0)
-		sum += *(uint8_t *)data;
+	if (count > 0) sum += *(uint8_t *)data;
 
-	while (sum >> 16)
-		sum = (sum & 0xffff) + (sum >> 16);
+	while (sum >> 16) sum = (sum & 0xffff) + (sum >> 16);
 
 	return ~sum;
 }
 
-void print_bytes(void *bytes, size_t len)
-{
+void print_bytes(void *bytes, size_t len) {
 	char *b = (char *)bytes;
-	for (size_t i = 0; i < len; i++)
-	{
+	for (size_t i = 0; i < len; i++) {
 		printf("%c", b[i]);
 	}
 }
 
-void to_bytes(void *data, char *dst, size_t len)
-{
+void to_bytes(void *data, char *dst, size_t len) {
 	memcpy(dst, (char *)data, len);
 }
 
-int openTun(char *dev)
-{
+int openTun(char *dev) {
 	struct ifreq ifr;
 	int fd, err;
 
-	if ((fd = open("/dev/net/tun", O_RDWR)) < 0)
-		return 1;
+	if ((fd = open("/dev/net/tun", O_RDWR)) < 0) return 1;
 
 	memset(&ifr, 0, sizeof(ifr));
 
 	ifr.ifr_flags = IFF_TUN | IFF_NO_PI;
 	strncpy(ifr.ifr_name, dev, IFNAMSIZ);
 
-	if ((err = ioctl(fd, TUNSETIFF, (void *)&ifr)) < 0)
-	{
+	if ((err = ioctl(fd, TUNSETIFF, (void *)&ifr)) < 0) {
 		close(fd);
 		return err;
 	}
