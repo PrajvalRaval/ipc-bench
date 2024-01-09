@@ -22,8 +22,7 @@
 #define buf2ip(buf) ((struct ipv4 *)buf)
 #define buf2tcp(buf, ip) ((struct tcp *)(buf + iphlen(ip) * 4))
 
-enum tcp_state
-{
+enum tcp_state {
 	TCP_LISTEN,
 	TCP_SYN_SENT,
 	TCP_SYN_RECEIVED,
@@ -37,8 +36,7 @@ enum tcp_state
 	TCP_CLOSED
 };
 
-struct ipv4
-{
+struct ipv4 {
 	uint8_t version_ihl;
 	uint8_t tos;
 	uint16_t len;
@@ -51,8 +49,7 @@ struct ipv4
 	uint32_t dst;
 };
 
-struct icmpecho
-{
+struct icmpecho {
 	uint8_t type;
 	uint8_t code;
 	uint16_t checksum;
@@ -60,8 +57,7 @@ struct icmpecho
 	uint16_t seq;
 };
 
-struct tcp
-{
+struct tcp {
 	uint16_t sport;
 	uint16_t dport;
 	uint32_t seq;
@@ -73,8 +69,7 @@ struct tcp
 	uint16_t urp;
 };
 
-struct pseudoheader
-{
+struct pseudoheader {
 	uint32_t src;
 	uint32_t dst;
 	uint8_t zero;
@@ -82,8 +77,7 @@ struct pseudoheader
 	uint16_t tcp_len;
 };
 
-struct tcp_conn
-{
+struct tcp_conn {
 	int tun;
 	enum tcp_state state;
 	char *src_addr;
@@ -94,16 +88,26 @@ struct tcp_conn
 	uint32_t ack;
 };
 
-void IPV4(size_t len_contents, uint8_t protocol,char *saddr, char *daddr, struct ipv4 *ip);
+void IPV4(size_t len_contents,
+					uint8_t protocol,
+					char *saddr,
+					char *daddr,
+					struct ipv4 *ip);
 void ICMPEcho(uint16_t seq, struct icmpecho *echo);
-void TCP(uint16_t sport, uint16_t dport, uint32_t seq, uint32_t ack, uint8_t flags, struct tcp *tcp);
-void TCPConnection(int tun, char *saddr, char *daddr, uint16_t port, struct tcp_conn *conn);
+void TCP(uint16_t sport,
+				 uint16_t dport,
+				 uint32_t seq,
+				 uint32_t ack,
+				 uint8_t flags,
+				 struct tcp *tcp);
+void TCPConnection(
+		int tun, char *saddr, char *daddr, uint16_t port, struct tcp_conn *conn);
 void send_tcp_packet(struct tcp_conn *conn, uint8_t flags);
 
 uint16_t checksum(void *data, size_t count);
-uint16_t tcp_checksum(struct ipv4 *ip, struct tcp *tcp, char *data);
+uint16_t tcp_checksum(struct ipv4 *ip, struct tcp *tcp);
 void print_bytes(void *bytes, size_t len);
 void to_bytes(void *data, char *dst, size_t len);
 int openTun(char *dev);
 
-#endif // TUNTCP_H
+#endif// TUNTCP_H
