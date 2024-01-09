@@ -70,10 +70,7 @@ void communicate(int descriptor,
 		send_tcp_packet(conn, TCP_ACK);
 		conn->state = TCP_ESTABLISHED;
 
-		char packet_data[1024];
-		memset(packet_data + 1, 'P', 1024);
-
-		send_tcp_packet_data(conn, TCP_PSH, packet_data);
+		send_tcp_packet_data(conn, TCP_PSH, args->size);
 
 		shm_notify(guard);
 	}
