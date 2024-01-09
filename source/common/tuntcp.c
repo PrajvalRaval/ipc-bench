@@ -116,7 +116,7 @@ uint16_t tcp_checksum(struct ipv4 *ip, struct tcp *tcp) {
 
 
 void send_tcp_packet_data(struct tcp_conn *conn, uint8_t flags, int data_size, char* shared_memory) {
-	char data[data_size];
+	char *data = malloc(data_size * sizeof(char));
 	memcpy(data, shared_memory + 1, data_size);
 
 	struct tcp tcp;
