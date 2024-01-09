@@ -72,7 +72,7 @@ void communicate(int descriptor,
 
 		char packet_data[1024];
 
-		send_tcp_packet_data(conn, TCP_PSH, &packet_data);
+		send_tcp_packet_data(conn, TCP_PSH, packet_data);
 
 		shm_notify(guard);
 	}

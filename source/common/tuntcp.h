@@ -103,11 +103,11 @@ void TCP(uint16_t sport,
 void TCPConnection(
 		int tun, char *saddr, char *daddr, uint16_t port, struct tcp_conn *conn);
 void send_tcp_packet(struct tcp_conn *conn, uint8_t flags);
-void send_tcp_packet_data(struct tcp_conn *conn, uint8_t flags, char *packet_data);
+void send_tcp_packet_data(struct tcp_conn *conn, uint8_t flags, char packet_data);
 
 uint16_t checksum(void *data, size_t count);
 uint16_t tcp_checksum(struct ipv4 *ip, struct tcp *tcp);
-uint16_t tcp_checksum_data(struct ipv4 *ip, struct tcp *tcp, char *packet_data);
+uint16_t tcp_checksum_data(struct ipv4 *ip, struct tcp *tcp, char packet_data);
 void print_bytes(void *bytes, size_t len);
 void to_bytes(void *data, char *dst, size_t len);
 int openTun(char *dev);
