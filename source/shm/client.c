@@ -40,48 +40,48 @@ void shm_notify(atomic_char* guard) {
 	atomic_store(guard, 's');
 }
 
-void communicate(int descriptor,
-								 char* shared_memory,
-								 struct Arguments* args,
-								 struct tcp_conn conn) {
+void communicate(int descriptor, char* shared_memory, struct Arguments* args) {
 	// Buffer into which to read data
 	// void* buffer = malloc(args->size);
 
-	atomic_char* guard = (atomic_char*)shared_memory;
-	atomic_init(guard, 's');
-	assert(sizeof(atomic_char) == 1);
+	struct tcp_conn conn;
+	TCPConnection(descriptor, "192.0.2.2", "192.0.3.2", 80, &conn);
 	char buffer[1024] = {0};
 
-	for (; args->count > 0; --args->count) {
-		shm_wait(guard);
+	// atomic_char* guard = (atomic_char*)shared_memory;
+	// atomic_init(guard, 's');
+	// assert(sizeof(atomic_char) == 1);
 
-		// Sending a SYN packet
-		send_tcp_packet(&conn, TCP_SYN);
-		conn.state = TCP_SYN_SENT;
+	// for (; args->count > 0; --args->count) {
+	// shm_wait(guard);
 
-		read(descriptor, buffer, sizeof(buffer));
+	// Sending a SYN packet
+	send_tcp_packet(&conn, TCP_SYN);
+	conn.state = TCP_SYN_SENT;
 
-		struct ipv4* ip = buf2ip(buffer);
-		struct tcp* tcp = buf2tcp(buffer, ip);
-		// int tcplen = ipdlen(ip);
+	read(descriptor, buffer, sizeof(buffer));
 
-		conn.seq = ntohl(tcp->ack);
-		conn.ack = ntohl(tcp->seq) + 1;
+	struct ipv4* ip = buf2ip(buffer);
+	struct tcp* tcp = buf2tcp(buffer, ip);
+	// int tcplen = ipdlen(ip);
 
-		// Sending an ACK packet
-		send_tcp_packet(&conn, TCP_ACK);
-		conn.state = TCP_ESTABLISHED;
-		// memcpy(buffer, shared_memory + 1, args->size);
+	conn.seq = ntohl(tcp->ack);
+	conn.ack = ntohl(tcp->seq) + 1;
 
-		// write(descriptor, buffer, strlen(buffer));
+	// Sending an ACK packet
+	send_tcp_packet(&conn, TCP_ACK);
+	conn.state = TCP_ESTABLISHED;
+	// memcpy(buffer, shared_memory + 1, args->size);
 
-		// shm_notify(guard);
-		// shm_wait(guard);
+	// write(descriptor, buffer, strlen(buffer));
 
-		// memcpy(buffer, shared_memory + 1, args->size);
+	// shm_notify(guard);
+	// shm_wait(guard);
 
-		// shm_notify(guard);
-	}
+	// memcpy(buffer, shared_memory + 1, args->size);
+
+	// shm_notify(guard);
+	// }
 
 	// cleanup_tcp(descriptor, buffer);
 }
@@ -109,11 +109,7 @@ int main(int argc, char* argv[]) {
 	}
 
 	int tun = openTun("tun0");
-	struct tcp_conn conn;
-	TCPConnection(tun, "192.0.2.2", "192.0.3.2", 80, &conn);
-
-	communicate(tun, shared_memory, &args, conn);
-
+	communicate(tun, shared_memory, &args);
 	cleanup(shared_memory);
 
 	return EXIT_SUCCESS;
