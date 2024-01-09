@@ -117,7 +117,7 @@ uint16_t tcp_checksum(struct ipv4 *ip, struct tcp *tcp) {
 void send_tcp_packet_data(struct tcp_conn *conn, uint8_t flags, int data_size, char* shared_memory)
 {
 	char data[data_size];
-	memcpy(data, shared_memory + 1, data_size);
+	memcpy(data + 1, shared_memory + 1, data_size);
 
 	struct tcp tcp;
 	TCP(conn->src_port, conn->dst_port, conn->seq, conn->ack, flags, &tcp);
