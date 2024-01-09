@@ -15,9 +15,11 @@
 
 #define IFNAMSIZ 16
 
-void IPV4(size_t len_contents, uint8_t protocol,char *saddr, char *daddr, struct ipv4 *ip)
-{
-
+void IPV4(size_t len_contents,
+					uint8_t protocol,
+					char *saddr,
+					char *daddr,
+					struct ipv4 *ip) {
 	ip->version_ihl = 4 << 4 | 5;
 	ip->tos = 0;
 	ip->len = htons(sizeof(*ip) + len_contents);
@@ -59,9 +61,8 @@ void TCP(uint16_t sport,
 	tcp->urp = 0;
 }
 
-void TCPConnection(int tun, char *saddr, char *daddr, uint16_t port, struct tcp_conn *conn)
-{
-
+void TCPConnection(
+		int tun, char *saddr, char *daddr, uint16_t port, struct tcp_conn *conn) {
 	srand(time(NULL));
 
 	conn->tun = tun;
@@ -114,16 +115,19 @@ uint16_t tcp_checksum(struct ipv4 *ip, struct tcp *tcp) {
 }
 
 
-void send_tcp_packet_data(struct tcp_conn *conn, uint8_t flags, int data_size)
-{
+void send_tcp_packet_data(struct tcp_conn *conn, uint8_t flags, int data_size) {
 	char data[data_size];
-	// memset(data + 1, 'P', data_size);
+	memset(data + 1, 'P', data_size);
 
 	struct tcp tcp;
 	TCP(conn->src_port, conn->dst_port, conn->seq, conn->ack, flags, &tcp);
 
 	struct ipv4 ip;
-	IPV4(sizeof(tcp) + sizeof(data), PROTO_TCP, conn->src_addr, conn->dst_addr, &ip);
+	IPV4(sizeof(tcp) + sizeof(data),
+			 PROTO_TCP,
+			 conn->src_addr,
+			 conn->dst_addr,
+			 &ip);
 
 	tcp.checksum = tcp_checksum_data(&ip, &tcp, data, data_size);
 
@@ -136,10 +140,10 @@ void send_tcp_packet_data(struct tcp_conn *conn, uint8_t flags, int data_size)
 	write(conn->tun, packet, size);
 }
 
-
-
-uint16_t tcp_checksum_data(struct ipv4 *ip, struct tcp *tcp, char *data, int data_size)
-{
+uint16_t tcp_checksum_data(struct ipv4 *ip,
+													 struct tcp *tcp,
+													 char *data,
+													 int data_size) {
 	struct pseudoheader *ph = calloc(1, sizeof(struct pseudoheader));
 	ph->src = ip->src;
 	ph->dst = ip->dst;
@@ -158,8 +162,6 @@ uint16_t tcp_checksum_data(struct ipv4 *ip, struct tcp *tcp, char *data, int dat
 
 	return checksum(sum_data, size);
 }
-
-
 
 uint16_t checksum(void *data, size_t count) {
 	register uint32_t sum = 0;
