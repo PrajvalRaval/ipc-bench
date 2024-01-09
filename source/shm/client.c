@@ -45,6 +45,8 @@ void communicate(int descriptor,
 								 struct Arguments* args,
 								 struct tcp_conn* conn) {
 	char buffer[1024] = {0};
+	void* shm_buffer = malloc(args->size);
+
 
 	atomic_char* guard = (atomic_char*)shared_memory;
 	atomic_init(guard, 's');
@@ -52,6 +54,8 @@ void communicate(int descriptor,
 
 	for (; args->count > 0; --args->count) {
 		shm_wait(guard);
+
+		memcpy(shm_buffer, shared_memory + 1, args->size);
 
 		send_tcp_packet(conn, TCP_SYN);
 		conn->state = TCP_SYN_SENT;
@@ -73,9 +77,14 @@ void communicate(int descriptor,
 		send_tcp_packet_data(conn, TCP_PSH, args->size);
 
 		shm_notify(guard);
+		shm_wait(guard);
+
+		memcpy(shm_buffer, shared_memory + 1, args->size);
+
+		shm_notify(guard);
 	}
 
-	// cleanup_tcp(descriptor, buffer);
+	cleanup_tcp(descriptor, shm_buffer);
 }
 
 int main(int argc, char* argv[]) {

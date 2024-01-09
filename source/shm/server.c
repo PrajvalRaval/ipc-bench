@@ -49,12 +49,16 @@ void communicate(int descriptor,
 	int message;
 	atomic_char* guard = (atomic_char*)shared_memory;
 
+	void* shm_buffer = malloc(args->size);
+
 	// Wait for signal from client
 	shm_wait(guard);
 	setup_benchmarks(&bench);
 
 	for (message = 0; message < args->count; ++message) {
 		bench.single_start = now();
+
+		memset(shared_memory + 1, '*', args->size);
 
 		shm_notify(guard);
 		shm_wait(guard);
@@ -74,14 +78,21 @@ void communicate(int descriptor,
 		shm_notify(guard);
 		shm_wait(guard);
 
+		read(descriptor, shm_buffer, sizeof(shm_buffer));
+
+		memcpy(shared_memory + 1, buffer, args->size);
+
 		send_tcp_packet(conn, TCP_RST);
 		conn->state = TCP_CLOSED;
+
+		shm_notify(guard);
+		shm_wait(guard);
 
 		benchmark(&bench);
 	}
 
 	evaluate(&bench, args);
-	// cleanup_tcp(descriptor, buffer);
+	cleanup_tcp(descriptor, shm_buffer);
 }
 
 int main(int argc, char* argv[]) {
