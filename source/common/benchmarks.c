@@ -51,6 +51,7 @@ void evaluate(Benchmarks* bench, Arguments* args) {
 	double sigma = bench->squared_sum / args->count;
 	sigma = sqrt(sigma - (average * average));
 
+	long int sizeDiff = 1024/args->count;
 	long int messageRate = (int)(args->count / (total_time / 1e9));
 
 	printf("\n============ RESULTS ================\n");
@@ -63,11 +64,11 @@ void evaluate(Benchmarks* bench, Arguments* args) {
 	printf("Standard deviation: %.3f\tus\n", sigma / 1000.0);
 	printf("Message rate:       %ld\tmsg/s\n", messageRate);
 	printf("\n====== FOR 1024 PACKET SIZE ==========\n");
-	printf("Message rate:       %ld\tKBps/s\n", messageRate);
-	printf("Message rate:       %ld\tkbps/s\n", messageRate / 8);
-	printf("Message rate:       %ld\tMBps/s\n", messageRate * 1024);
-	printf("Message rate:       %ld\tMbps/s\n", (messageRate * 1024) / 8);
-	printf("Message rate:       %ld\tGBps/s\n", (messageRate * 1024 * 1024));
-	printf("Message rate:       %ld\tGbps/s\n", (messageRate * 1024 * 1024) / 8);
+	printf("Message rate:       %ld\tKBps/s\n", (messageRate * sizeDiff));
+	printf("Message rate:       %ld\tkbps/s\n", (messageRate * sizeDiff) / 8);
+	printf("Message rate:       %ld\tMBps/s\n", (messageRate * sizeDiff) * 1024);
+	printf("Message rate:       %ld\tMbps/s\n", ((messageRate * sizeDiff) * 1024) / 8);
+	printf("Message rate:       %ld\tGBps/s\n", ((messageRate * sizeDiff) * 1024 * 1024));
+	printf("Message rate:       %ld\tGbps/s\n", ((messageRate * sizeDiff) * 1024 * 1024) / 8);
 	printf("=====================================\n");
 }
