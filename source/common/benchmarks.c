@@ -63,14 +63,13 @@ void evaluate(Benchmarks* bench, Arguments* args) {
 	printf("Maximum duration:   %.3f\tus\n", bench->maximum / 1000.0);
 	printf("Standard deviation: %.3f\tus\n", sigma / 1000.0);
 	printf("Message rate:       %.7f\tmsg/s\n", messageRate);
-	printf("\n======== TRANSFER RATES ============\n");
-	printf("Transfer rate:       %.7f\tKBps/s\n", (messageRate * sizeDiff));
-	printf("Transfer rate:       %.7f\tkbps/s\n", (messageRate * sizeDiff) * 8);
-	printf("=====================================\n");
-	printf("Transfer rate:       %.7f\tMBps/s\n", (messageRate * sizeDiff) / 1024);
-	printf("Transfer rate:       %.7f\tMbps/s\n", ((messageRate * sizeDiff) / 1024) * 8);
-	printf("=====================================\n");
-	printf("Transfer rate:       %.7f\tGBps/s\n", ((messageRate * sizeDiff) / 1024 / 1024));
-	printf("Transfer rate:       %.7f\tGbps/s\n", ((messageRate * sizeDiff) / 1024 / 1024) * 8);
+	printf("\n===== TRANSFER RATES (BYTES) ========\n");
+	printf("Transfer rate:       %.7f\tKB/s\n", (messageRate * sizeDiff));
+	printf("Transfer rate:       %.7f\tMB/s\n", (messageRate * sizeDiff) / 1024);
+	printf("Transfer rate:       %.7f\tGB/s\n", ((messageRate * sizeDiff) / 1024 / 1024));
+	printf("\n===== TRANSFER RATES (BITS) ========\n");
+	printf("Transfer rate:       %.7f\tKb/s\n", (messageRate * sizeDiff) * 8);
+	printf("Transfer rate:       %.7f\tMb/s\n", ((messageRate * sizeDiff) / 1024) * 8);
+	printf("Transfer rate:       %.7f\tGb/s\n", ((messageRate * sizeDiff) / 1024 / 1024) * 8);
 	printf("=====================================\n");
 }
