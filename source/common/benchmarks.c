@@ -67,10 +67,10 @@ void evaluate(Benchmarks* bench, Arguments* args) {
 	printf("Transfer rate:       %ld\tKBps/s\n", (messageRate * sizeDiff));
 	printf("Transfer rate:       %ld\tkbps/s\n", (messageRate * sizeDiff) / 8);
 	printf("=====================================\n");
-	printf("Transfer rate:       %ld\tMBps/s\n", (messageRate * sizeDiff) * 1024);
-	printf("Transfer rate:       %ld\tMbps/s\n", ((messageRate * sizeDiff) * 1024) / 8);
+	printf("Transfer rate:       %ld\tMBps/s\n", (messageRate * sizeDiff) / 1024);
+	printf("Transfer rate:       %ld\tMbps/s\n", ((messageRate * sizeDiff) / 1024) / 8);
 	printf("=====================================\n");
-	printf("Transfer rate:       %ld\tGBps/s\n", ((messageRate * sizeDiff) * 1024 * 1024));
-	printf("Transfer rate:       %ld\tGbps/s\n", ((messageRate * sizeDiff) * 1024 * 1024) / 8);
+	printf("Transfer rate:       %ld\tGBps/s\n", ((messageRate * sizeDiff) / 1024 / 1024));
+	printf("Transfer rate:       %ld\tGbps/s\n", ((messageRate * sizeDiff) / 1024 / 1024) / 8);
 	printf("=====================================\n");
 }
