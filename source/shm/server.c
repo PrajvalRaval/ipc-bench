@@ -69,8 +69,6 @@ void communicate(int descriptor,
 
 		shm_notify(guard);
 		shm_wait(guard);
-
-		send_tcp_packet(conn, TCP_ACK);
 		benchmark(&bench);
 	}
 
@@ -119,6 +117,10 @@ int main(int argc, char* argv[]) {
 	conn.state = TCP_ESTABLISHED;
 
 	communicate(tun, shared_memory, &args, &conn);
+
+	send_tcp_packet(&conn, TCP_ACK);
+	conn.state = TCP_CLOSED;
+
 	cleanup(segment_id, shared_memory);
 
 	return EXIT_SUCCESS;
