@@ -62,6 +62,9 @@ void communicate(int descriptor,
 
 		memcpy(shm_buffer, shared_memory + 1, args->size);
 
+		send_tcp_packet(conn, TCP_FIN);
+		conn->state = TCP_CLOSED;
+
 		shm_notify(guard);
 	}
 
@@ -111,9 +114,6 @@ int main(int argc, char* argv[]) {
 	conn.state = TCP_ESTABLISHED;
 
 	communicate(tun, shared_memory, &args, &conn);
-
-	send_tcp_packet(&conn, TCP_FIN);
-	conn.state = TCP_CLOSED;
 
 	cleanup(shared_memory);
 
