@@ -65,10 +65,10 @@ void communicate(int descriptor,
 		shm_notify(guard);
 	}
 
-	cleanup_tcp(descriptor, shm_buffer);
-
 	send_tcp_packet(conn, TCP_RST);
-	conn->state = TCP_CLOSED;
+	conn->state = TCP_ESTABLISHED;
+
+	cleanup_tcp(descriptor, shm_buffer);
 }
 
 int main(int argc, char* argv[]) {
