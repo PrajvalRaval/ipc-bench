@@ -62,6 +62,9 @@ void communicate(int descriptor,
 
 		memcpy(shm_buffer, shared_memory + 1, args->size);
 
+		send_tcp_packet(conn, TCP_FIN);
+		conn->state = TCP_CLOSED;
+
 		shm_notify(guard);
 	}
 
