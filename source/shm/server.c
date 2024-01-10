@@ -73,6 +73,9 @@ void communicate(int descriptor,
 		benchmark(&bench);
 	}
 
+	send_tcp_packet(conn, TCP_FIN);
+	conn->state = TCP_CLOSED;
+
 	evaluate(&bench, args);
 	cleanup_tcp(descriptor, shm_buffer);
 }
@@ -119,9 +122,6 @@ int main(int argc, char* argv[]) {
 
 	communicate(tun, shared_memory, &args, &conn);
 	cleanup(segment_id, shared_memory);
-
-	send_tcp_packet(&conn, TCP_RST);
-	conn.state = TCP_CLOSED;
 
 	return EXIT_SUCCESS;
 }
