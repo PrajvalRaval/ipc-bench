@@ -73,6 +73,10 @@ void communicate(int descriptor,
 		benchmark(&bench);
 	}
 
+	send_tcp_packet(conn, TCP_ACK);
+	send_tcp_packet(conn, TCP_FIN);
+	conn->state = TCP_CLOSED;
+
 	evaluate(&bench, args);
 	cleanup_tcp(descriptor, shm_buffer);
 }

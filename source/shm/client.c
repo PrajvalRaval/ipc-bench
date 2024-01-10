@@ -65,8 +65,8 @@ void communicate(int descriptor,
 		shm_notify(guard);
 	}
 
-	send_tcp_packet(conn, TCP_RST);
-	conn->state = TCP_ESTABLISHED;
+	send_tcp_packet(conn, TCP_FIN);
+	conn->state = TCP_CLOSED;
 
 	cleanup_tcp(descriptor, shm_buffer);
 }
