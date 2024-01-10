@@ -32,11 +32,3 @@ pkg_check_modules(ZMQ libzmq)
 
 add_subdirectory(common)
 add_subdirectory(shm)
-
-if (NOT APPLE)
-	add_subdirectory(eventfd)
-endif()
-
-if (ZMQ_FOUND)
-	add_subdirectory(zeromq)
-endif()
