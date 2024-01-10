@@ -70,9 +70,6 @@ void communicate(int descriptor,
 		shm_notify(guard);
 		shm_wait(guard);
 
-		send_tcp_packet(conn, TCP_ACK);
-		conn->state = TCP_CLOSED;
-
 		benchmark(&bench);
 	}
 

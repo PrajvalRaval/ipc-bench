@@ -62,13 +62,13 @@ void communicate(int descriptor,
 
 		memcpy(shm_buffer, shared_memory + 1, args->size);
 
-		send_tcp_packet(conn, TCP_FIN);
-		conn->state = TCP_CLOSED;
-
 		shm_notify(guard);
 	}
 
 	cleanup_tcp(descriptor, shm_buffer);
+
+	send_tcp_packet(conn, TCP_RST);
+	conn->state = TCP_CLOSED;
 }
 
 int main(int argc, char* argv[]) {
