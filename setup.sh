@@ -15,13 +15,3 @@ sudo iptables -A FORWARD -o tun0 -d 192.0.2.2 -j ACCEPT
 sudo iptables -A FORWARD -o tun1 -d 192.0.3.2 -j ACCEPT
 
 sudo sysctl -w net.ipv4.ip_forward=1
-
-
-# sudo iptables -A INPUT -i tun1 -m state --state RELATED,ESTABLISHED -j ACCEPT
-# sudo iptables -A INPUT -i tun0 -m state --state RELATED,ESTABLISHED -j ACCEPT
-
-# sudo sysctl net.ipv4.conf.tun0.accept_local=1
-# sudo sysctl net.ipv4.conf.tun1.accept_local=1
-# sudo sysctl -p
-
-# sudo ip route flush cache
